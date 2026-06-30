@@ -4,7 +4,7 @@
     
     <!-- Workspace -->
     <div class="flex-1 flex overflow-hidden">
-      <LeftSidebar v-if="!store.isLeftSidebarCollapsed" />
+      <LeftSidebar v-show="!store.isLeftSidebarCollapsed" />
       <button
         v-else
         @click="store.setLeftSidebarCollapsed(false)"
@@ -69,7 +69,7 @@
         <AiPageGenerator v-if="store.isAiGeneratorOpen" @insert="insertAiPage" />
       </div>
       
-      <RightSidebar v-if="!store.isRightSidebarCollapsed" />
+      <RightSidebar v-show="!store.isRightSidebarCollapsed" />
       <button
         v-else
         @click="store.setRightSidebarCollapsed(false)"
