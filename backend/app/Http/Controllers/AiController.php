@@ -41,6 +41,7 @@ class AiController extends Controller
         $payload = null;
         $provider = null;
         $model = null;
+        $debugStitchOutput = null;
 
         if ($stitchKey && $stitchProjectId) {
             set_time_limit(180);
@@ -59,6 +60,7 @@ class AiController extends Controller
 
             // Execute via shell_exec to avoid CSPRNG crashes on Windows background tasks
             $output = shell_exec("{$nodeBinEscaped} {$scriptPath} 2>&1");
+            $debugStitchOutput = $output;
 
             if ($output) {
                 $decoded = json_decode($output, true);
@@ -105,6 +107,11 @@ class AiController extends Controller
             'project_id' => $project->id,
             'model' => $model ?: 'local-fallback',
             'provider' => $provider ?: 'local-fallback',
+            'diagnostics' => [
+                'stitch_configured' => ($stitchKey && $stitchProjectId) ? 'yes' : 'no',
+                'gemini_configured' => config('services.gemini.key') ? 'yes' : 'no',
+                'stitch_shell_output' => $debugStitchOutput,
+            ],
             'steps' => [
                 'Reasoning through layout structure...',
                 'Mapping prompt to reusable builder sections...',
