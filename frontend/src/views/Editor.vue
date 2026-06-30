@@ -83,7 +83,7 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { onMounted, onUnmounted, ref, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import grapesjs from 'grapesjs'
 import 'grapesjs/dist/css/grapes.min.css'
@@ -325,6 +325,9 @@ onMounted(async () => {
     store.setLeftSidebarCollapsed(true)
     store.setRightSidebarCollapsed(true)
   }
+
+  // Wait for Vue DOM updates to finalize so custom sidebar target elements exist
+  await nextTick()
 
   const editor = grapesjs.init({
     container: '#gjs-container',
