@@ -6,7 +6,7 @@
     <div class="flex-1 flex overflow-hidden">
       <LeftSidebar v-show="!store.isLeftSidebarCollapsed" />
       <button
-        v-else
+        v-show="store.isLeftSidebarCollapsed"
         @click="store.setLeftSidebarCollapsed(false)"
         class="absolute left-3 top-20 z-30 h-9 w-9 rounded bg-surface-container border border-outline text-on-surface-variant hover:text-white hover:border-primary flex items-center justify-center shadow-xl"
         title="Expand left sidebar"
@@ -71,7 +71,7 @@
       
       <RightSidebar v-show="!store.isRightSidebarCollapsed" />
       <button
-        v-else
+        v-show="store.isRightSidebarCollapsed"
         @click="store.setRightSidebarCollapsed(false)"
         class="absolute right-3 top-20 z-30 h-9 w-9 rounded bg-surface-container border border-outline text-on-surface-variant hover:text-white hover:border-primary flex items-center justify-center shadow-xl"
         title="Expand right sidebar"
