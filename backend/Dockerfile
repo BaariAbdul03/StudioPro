@@ -14,6 +14,9 @@ RUN npm run build
 # --- Stage 2: Build FrankenPHP Backend Server ---
 FROM dunglas/frankenphp:1-php8.3-alpine AS runner
 
+# Copy official composer binary
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
 # Install system dependencies and PHP extensions
 RUN apk add --no-cache \
     postgresql-client \
