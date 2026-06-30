@@ -15,7 +15,7 @@ use App\Http\Controllers\AiController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\AuthController;
 
-Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:3,60');
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,60');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,15');
 Route::get('/health', fn() => response()->json(['status' => 'ok', 'ts' => now()]));
 
