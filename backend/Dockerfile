@@ -35,8 +35,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     opcache \
     zip \
     bcmath \
-    && rm -rf /var/lib/apt/lists/* \
-    && ln -sf /usr/bin/nodejs /usr/bin/node
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /var/www/html
