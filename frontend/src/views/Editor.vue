@@ -155,6 +155,18 @@ const insertAiPage = (payload) => {
   if (!store.editor || !payload) return
   store.editor.setComponents(payload.html || '')
   store.editor.setStyle(payload.css || '')
+  
+  // Dynamically load any external stylesheets (e.g. fonts, Tailwind CDN) returned by the generator
+  if (payload.meta && Array.isArray(payload.meta.stylesheets)) {
+    payload.meta.stylesheets.forEach(url => {
+      try {
+        store.editor.Canvas.addStylesheet(url)
+      } catch (err) {
+        console.warn('Failed to add dynamic stylesheet:', url, err)
+      }
+    })
+  }
+
   if (payload.meta) {
     store.setPageMeta({
       seoTitle: payload.meta.title || payload.meta.seoTitle || store.pageMeta.seoTitle,
@@ -337,6 +349,7 @@ onMounted(async () => {
     panels: { defaults: [] },
     canvas: {
       styles: [
+        'https://cdn.tailwindcss.com',
         'https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700;800&display=swap',
         'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap',
         'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap',
