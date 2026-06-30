@@ -11,8 +11,8 @@ COPY frontend/ ./
 ENV VITE_API_BASE_URL=/api
 RUN npm run build
 
-# --- Stage 2: Build FrankenPHP Backend Server (Debian Bookworm) ---
-FROM dunglas/frankenphp:1-php8.3 AS runner
+# --- Stage 2: Build PHP Apache Backend Server ---
+FROM php:8.3-apache AS runner
 
 # Copy official composer binary
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -20,9 +20,13 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
+    libpq-dev \
+    libzip-dev \
+    libpng-dev \
+    libxml2-dev \
     git \
     unzip \
-    && install-php-extensions \
+    && docker-php-ext-install \
     pcntl \
     pdo_pgsql \
     pgsql \
@@ -32,7 +36,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
-WORKDIR /app
+WORKDIR /var/www/html
 
 # Copy Composer files and install production dependencies
 COPY backend/composer.json backend/composer.lock ./
@@ -48,14 +52,16 @@ COPY --from=frontend-builder /frontend/dist/ ./public/
 # Run post-install scripts and optimize autoloading
 RUN composer dump-autoload --no-dev --optimize
 
+# Change Apache document root to Laravel's public directory
+RUN sed -i -e "s|/var/www/html|/var/www/html/public|g" /etc/apache2/sites-available/000-default.conf
+
+# Enable Apache mod_rewrite for Laravel routing
+RUN a2enmod rewrite
+
 # Set permissions for storage directories
-RUN chown -R www-data:www-data /app \
-    && chmod -R 775 /app/storage /app/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Configure FrankenPHP document root and port
-ENV FRANKENPHP_DOCUMENT_ROOT=/app/public
-ENV PORT=8000
+EXPOSE 80
 
-EXPOSE 8000
-
-CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
+CMD ["apache2-foreground"]
