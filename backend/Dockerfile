@@ -17,7 +17,7 @@ FROM php:8.3-apache AS runner
 # Copy official composer binary
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Install system dependencies and PHP extensions
+# Install system dependencies, Node.js, npm, and PHP extensions
 RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
     libpq-dev \
@@ -26,6 +26,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxml2-dev \
     git \
     unzip \
+    nodejs \
+    npm \
     && docker-php-ext-install \
     pcntl \
     pdo_pgsql \
@@ -42,6 +44,10 @@ WORKDIR /var/www/html
 COPY backend/composer.json backend/composer.lock ./
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --no-dev --no-interaction --no-plugins --no-scripts --prefer-dist --optimize-autoloader
+
+# Copy backend package configurations and install Node dependencies for Stitch bridge
+COPY backend/package*.json ./
+RUN npm install --omit=dev
 
 # Copy backend application files
 COPY backend/ .
