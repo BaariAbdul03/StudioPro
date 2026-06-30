@@ -72,6 +72,7 @@ class AiController extends Controller
                     $payload = [
                         'html' => $html,
                         'css' => $decoded['css'] ?? '',
+                        'tailwindConfigScript' => $decoded['tailwindConfigScript'] ?? '',
                         'meta' => $this->fallbackSeo($prompt),
                     ];
                     $provider = 'google-stitch';

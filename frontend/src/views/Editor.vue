@@ -156,15 +156,37 @@ const insertAiPage = (payload) => {
   store.editor.setComponents(payload.html || '')
   store.editor.setStyle(payload.css || '')
   
-  // Dynamically load any external stylesheets (e.g. fonts, Tailwind CDN) returned by the generator
+  // Dynamically load any external resources (e.g. fonts, scripts) returned by the generator
   if (payload.meta && Array.isArray(payload.meta.stylesheets)) {
     payload.meta.stylesheets.forEach(url => {
       try {
-        store.editor.Canvas.addStylesheet(url)
+        if (url.includes('tailwindcss.com') || url.endsWith('.js')) {
+          store.editor.Canvas.addScript(url)
+        } else {
+          store.editor.Canvas.addStylesheet(url)
+        }
       } catch (err) {
-        console.warn('Failed to add dynamic stylesheet:', url, err)
+        console.warn('Failed to add dynamic resource:', url, err)
       }
     })
+  }
+
+  // Inject dynamic Tailwind Config if provided by Stitch
+  if (payload.tailwindConfigScript) {
+    try {
+      const doc = store.editor.Canvas.getDocument()
+      if (doc) {
+        let scriptTag = doc.getElementById('tailwind-config')
+        if (!scriptTag) {
+          scriptTag = doc.createElement('script')
+          scriptTag.id = 'tailwind-config'
+          doc.head.appendChild(scriptTag)
+        }
+        scriptTag.innerHTML = payload.tailwindConfigScript
+      }
+    } catch (err) {
+      console.warn('Failed to inject tailwind config script:', err)
+    }
   }
 
   if (payload.meta) {
@@ -349,7 +371,6 @@ onMounted(async () => {
     panels: { defaults: [] },
     canvas: {
       styles: [
-        'https://cdn.tailwindcss.com',
         'https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700;800&display=swap',
         'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap',
         'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap',

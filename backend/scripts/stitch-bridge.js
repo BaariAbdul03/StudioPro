@@ -53,6 +53,14 @@ async function main() {
         }
         css = css.trim();
 
+        // Extract tailwind config script
+        let tailwindConfigScript = '';
+        const tailwindRegex = /<script id="tailwind-config">([\s\S]*?)<\/script>/i;
+        const tailwindMatch = tailwindRegex.exec(rawHtml);
+        if (tailwindMatch) {
+            tailwindConfigScript = tailwindMatch[1].trim();
+        }
+
         // Collect body HTML markup
         const bodyRegex = /<body[^>]*>([\s\S]*?)<\/body>/i;
         const bodyMatch = bodyRegex.exec(rawHtml);
@@ -67,7 +75,8 @@ async function main() {
         // Print final JSON structure to stdout
         console.log(JSON.stringify({
             html,
-            css
+            css,
+            tailwindConfigScript
         }));
     } catch (err) {
         console.error("Bridge Error: " + err.message);
