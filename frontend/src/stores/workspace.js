@@ -28,9 +28,61 @@ export const useWorkspaceStore = defineStore('workspace', {
     },
     versions: [],
     formSubmissions: [],
-    apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api'
+    apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api',
+    preferences: {
+      canvas: {
+        width: '1440px',
+        height: 'auto',
+        showGrid: true,
+        snapToGrid: true,
+        showRulers: true,
+        highlightSelected: true,
+        gridSize: 24,
+        zoom: 100
+      },
+      editor: {
+        autoSave: true,
+        autoSaveDelay: 5,
+        undoDepth: 50,
+        realTimePreview: true,
+        showLabels: true,
+        compactMode: false,
+        tooltips: true
+      },
+      appearance: {
+        theme: 'dark',
+        accent: '#2E62FF',
+        fontSize: '13'
+      }
+    }
   }),
   actions: {
+    loadPreferences() {
+      const saved = localStorage.getItem('studiopro.preferences')
+      if (saved) {
+        try {
+          this.preferences = JSON.parse(saved)
+        } catch (e) {
+          console.error('Failed to load preferences')
+        }
+      }
+    },
+    savePreferences(prefs) {
+      if (prefs) {
+        this.preferences = { ...this.preferences, ...prefs }
+      }
+      localStorage.setItem('studiopro.preferences', JSON.stringify(this.preferences))
+      this.applyPreferences()
+    },
+    applyPreferences() {
+      document.documentElement.style.setProperty('--primary-accent', this.preferences.appearance.accent)
+      const isCompact = this.preferences.editor.compactMode
+      if (isCompact) {
+        document.body.classList.add('compact-mode')
+      } else {
+        document.body.classList.remove('compact-mode')
+      }
+    },
     toggleCartDrawer(state) {
       this.isCartDrawerOpen = state !== undefined ? state : !this.isCartDrawerOpen
     },
@@ -139,7 +191,11 @@ export const useWorkspaceStore = defineStore('workspace', {
       return version
     },
     async fetchPageVersions(projectId, pageId) {
-      const response = await fetch(`${this.apiBaseUrl}/projects/${projectId}/pages/${pageId}/versions`)
+      const response = await fetch(`${this.apiBaseUrl}/projects/${projectId}/pages/${pageId}/versions`, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
       if (!response.ok) throw new Error('Failed to load page versions')
       this.versions = await response.json()
       return this.versions
@@ -198,10 +254,37 @@ export const useWorkspaceStore = defineStore('workspace', {
       return response.json()
     },
     async fetchFormSubmissions(projectId) {
-      const response = await fetch(`${this.apiBaseUrl}/projects/${projectId}/form-submissions`)
+      const response = await fetch(`${this.apiBaseUrl}/projects/${projectId}/form-submissions`, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
       if (!response.ok) throw new Error('Failed to load form submissions')
       this.formSubmissions = await response.json()
       return this.formSubmissions
+    },
+    async fetchProject(projectId) {
+      const response = await fetch(`${this.apiBaseUrl}/projects/${projectId}`, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
+      if (!response.ok) throw new Error('Failed to load project')
+      this.activeProject = await response.json()
+      return this.activeProject
+    },
+    async updateProjectSettings(projectId, settings) {
+      const response = await fetch(`${this.apiBaseUrl}/projects/${projectId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ settings })
+      })
+      if (!response.ok) throw new Error('Failed to update project settings')
+      this.activeProject = await response.json()
+      return this.activeProject
     }
   }
 })

@@ -8,10 +8,20 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AllowLocalSpaCors
 {
-    private const ALLOWED_ORIGINS = [
-        'http://127.0.0.1:5173',
-        'http://localhost:5173',
-    ];
+    private function getAllowedOrigins(): array
+    {
+        $envOrigins = env('CORS_ALLOWED_ORIGINS');
+        if ($envOrigins) {
+            return array_map('trim', explode(',', $envOrigins));
+        }
+
+        return [
+            'http://127.0.0.1:5173',
+            'http://localhost:5173',
+            'http://127.0.0.1:3000',
+            'http://localhost:3000',
+        ];
+    }
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -25,8 +35,9 @@ class AllowLocalSpaCors
     private function withCorsHeaders(Response $response, Request $request): Response
     {
         $origin = $request->headers->get('Origin');
+        $allowed = $this->getAllowedOrigins();
 
-        if ($origin && in_array($origin, self::ALLOWED_ORIGINS, true)) {
+        if ($origin && in_array($origin, $allowed, true)) {
             $response->headers->set('Access-Control-Allow-Origin', $origin);
             $response->headers->set('Vary', 'Origin');
         }

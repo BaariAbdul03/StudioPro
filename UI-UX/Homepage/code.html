@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>StudioPro Premium Dashboard</title>
+<!-- Tailwind CSS v3 CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              charcoal: '#0a0b10',
+              navy: '#12141c',
+              accent: '#3b82f6', // Electric Blue
+              glass: 'rgba(255, 255, 255, 0.05)',
+            },
+          },
+          backgroundImage: {
+            'mesh-gradient': "radial-gradient(at 0% 0%, hsla(210,100%,15%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,100%,10%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(240,100%,15%,1) 0, transparent 50%)",
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Styles for Glassmorphism and Mesh effects -->
+<style data-purpose="custom-glass-effects">
+    .glass-card {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.3s ease;
+    }
+    .glass-card:hover {
+      border-color: rgba(59, 130, 246, 0.5);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .mesh-bg {
+      background-color: #0a0b10;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(29, 78, 216, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(30, 58, 138, 0.15) 0px, transparent 50%);
+    }
+    .text-glow {
+      text-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+    }
+    .accent-border-glow {
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
+    }
+    .roadmap-line {
+      width: 2px;
+      background: linear-gradient(to bottom, #3b82f6, rgba(59, 130, 246, 0.1));
+    }
+  </style>
+</head>
+<body class="bg-brand-charcoal text-gray-200 font-sans antialiased min-h-screen">
+<!-- BEGIN: MainHeader -->
+<header class="sticky top-0 z-50 border-b border-white/5 bg-brand-charcoal/80 backdrop-blur-md px-8 py-4 flex items-center justify-between">
+<div class="flex items-center gap-12">
+<!-- Logo Section -->
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 bg-brand-accent rounded-lg flex items-center justify-center shadow-lg shadow-brand-accent/20">
+<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<span class="text-xl font-bold tracking-tight text-white">StudioPro</span>
+</div>
+<!-- Navigation Menu -->
+<nav class="hidden md:flex items-center gap-1">
+<a class="px-4 py-2 rounded-lg bg-white/5 text-brand-accent font-medium transition-colors" href="#">Projects</a>
+<a class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors" href="#">Templates</a>
+<a class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors" href="#">CMS</a>
+<a class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors" href="#">Commerce</a>
+<a class="px-4 py-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors" href="#">Settings</a>
+</nav>
+</div>
+<!-- Right Header Actions -->
+<div class="flex items-center gap-4">
+<button class="px-5 py-2.5 bg-brand-accent hover:bg-blue-600 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-brand-accent/30 active:scale-95">
+        Open Editor
+      </button>
+</div>
+</header>
+<!-- END: MainHeader -->
+<!-- BEGIN: MainContent -->
+<main class="max-w-[1600px] mx-auto p-8 space-y-8">
+<!-- Top Grid: Hero & Quick Actions -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- BEGIN: HeroSection -->
+<div class="lg:col-span-2 relative overflow-hidden rounded-3xl border border-white/10 mesh-bg p-10 flex flex-col justify-between" data-purpose="hero-dashboard">
+<div class="relative z-10">
+<h1 class="text-6xl font-extrabold text-white tracking-tight mb-4 leading-tight">
+            Project <br/> Dashboard
+          </h1>
+<p class="text-gray-400 text-lg max-w-md">Welcome back. Manage your layouts, assets, and infrastructure in one centralized environment.</p>
+</div>
+<!-- Data Cards Row -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12 relative z-10">
+<div class="glass-card p-5 rounded-2xl">
+<div class="flex items-center justify-between mb-2">
+<span class="text-3xl font-bold text-white">1</span>
+<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<p class="text-xs font-bold uppercase tracking-widest text-gray-500">Projects</p>
+</div>
+<div class="glass-card p-5 rounded-2xl">
+<div class="flex items-center justify-between mb-2">
+<span class="text-3xl font-bold text-white">1</span>
+<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<p class="text-xs font-bold uppercase tracking-widest text-gray-500">Pages</p>
+</div>
+<div class="glass-card p-5 rounded-2xl">
+<div class="flex items-center justify-between mb-2">
+<span class="text-3xl font-bold text-white">4</span>
+<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<p class="text-xs font-bold uppercase tracking-widest text-gray-500">Products</p>
+</div>
+<div class="glass-card p-5 rounded-2xl">
+<div class="flex items-center justify-between mb-2">
+<span class="text-3xl font-bold text-white">2</span>
+<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<p class="text-xs font-bold uppercase tracking-widest text-gray-500">Collections</p>
+</div>
+</div>
+<!-- Decorative Mesh Elements -->
+<div class="absolute -top-24 -right-24 w-96 h-96 bg-brand-accent/10 blur-[120px] rounded-full"></div>
+</div>
+<!-- END: HeroSection -->
+<!-- BEGIN: QuickActions -->
+<aside class="space-y-6" data-purpose="quick-actions-sidebar">
+<div class="flex items-center justify-between">
+<h2 class="text-xl font-bold text-white">Quick Actions</h2>
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-bold text-gray-500 tracking-tighter uppercase">Local</span>
+<span class="text-[10px] font-bold text-brand-accent tracking-tighter uppercase">Ready</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<!-- Visual Editor -->
+<button class="glass-card p-6 rounded-2xl text-left border-brand-accent/30 bg-brand-accent/5 group">
+<div class="w-10 h-10 rounded-xl bg-brand-accent/20 flex items-center justify-center mb-4 text-brand-accent group-hover:scale-110 transition-transform">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<h3 class="text-white font-bold mb-1">Visual Editor</h3>
+<p class="text-xs text-gray-500">Canvas and panels</p>
+</button>
+<!-- Commerce -->
+<button class="glass-card p-6 rounded-2xl text-left group">
+<div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-4 text-gray-400 group-hover:text-white transition-colors">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<h3 class="text-white font-bold mb-1">Commerce</h3>
+<p class="text-xs text-gray-500">Inventory manager</p>
+</button>
+<!-- CMS -->
+<button class="glass-card p-6 rounded-2xl text-left group">
+<div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-4 text-gray-400 group-hover:text-white transition-colors">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<h3 class="text-white font-bold mb-1">CMS</h3>
+<p class="text-xs text-gray-500">Collections and items</p>
+</button>
+<!-- Templates -->
+<button class="glass-card p-6 rounded-2xl text-left group">
+<div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-4 text-gray-400 group-hover:text-white transition-colors">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<h3 class="text-white font-bold mb-1">Templates</h3>
+<p class="text-xs text-gray-500">Starter layouts</p>
+</button>
+</div>
+</aside>
+<!-- END: QuickActions -->
+</section>
+<!-- Bottom Grid: Recent Projects & Roadmap -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
+<!-- BEGIN: RecentProjects -->
+<div class="lg:col-span-2 glass-card p-8 rounded-3xl" data-purpose="recent-projects">
+<div class="flex items-center justify-between mb-8">
+<h2 class="text-2xl font-bold text-white">Recent Projects</h2>
+<button class="text-sm text-brand-accent font-semibold hover:underline">View All</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Project Card 1 -->
+<div class="group cursor-pointer">
+<div class="aspect-video rounded-xl overflow-hidden mb-4 border border-white/10 bg-brand-navy ring-brand-accent/0 group-hover:ring-2 transition-all">
+<img alt="Project 1" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNgwtNdVKgOB0otUNizKldTiKMjLBGpbAVJ9XF8Tv5W9ZtHKzIvjhS9Hcmx64-vpNlmSu40OdmtQquDF2SrVR7uuB8VtloY2a_mDrNKPeN8P2ss82AXkQdY324qTdQ5Q8CpzjLgH4qtFBcs0Le10W0yQWimQWhyiii9gZJt4Px_lxTS8U9OsXtV2yxt9dTVm4elIFI69Niw4bffHJL1um4J_9y9vdAUTCkrSNsLjyDDcowrTdnvy3nX4Zk0nsnJD9Exft3U2MeahF1"/>
+</div>
+<h4 class="text-white font-semibold">Business Marketing</h4>
+<p class="text-xs text-gray-500 mt-1">Edited: Nov 13, 2023</p>
+<button class="w-full mt-4 py-2 bg-white/5 rounded-lg text-sm font-medium hover:bg-white/10 transition-colors">View Project</button>
+</div>
+<!-- Project Card 2 -->
+<div class="group cursor-pointer">
+<div class="aspect-video rounded-xl overflow-hidden mb-4 border border-white/10 bg-brand-navy ring-brand-accent/0 group-hover:ring-2 transition-all">
+<img alt="Project 2" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcCTlLtK-NKY77BGkBydGzM_o5iIhcegvQsdUCw4L6AjvAO-Tp8GKaT8sGPy8YMRb_wpEW1JLyc9kc_DFRjvIdFiq5UGLE81mmt2Pm4e3w2OxGBHc7j5BtL-60u4u8fQUGd6fHmds_7T6ImBKeMlSgrqfn__fHpZ4JuLLAarH2WpFrPT49f1aaVTmFioUl56ZsQREz2vhLesX89XIH80veFQ2iSjD2IvDF4BYl1neRuSPNKmrlYhVs_em3TO76AO40JnkooVaFgcF9"/>
+</div>
+<h4 class="text-white font-semibold">Product Template</h4>
+<p class="text-xs text-gray-500 mt-1">Edited: Apr 27, 2023</p>
+<button class="w-full mt-4 py-2 bg-white/5 rounded-lg text-sm font-medium hover:bg-white/10 transition-colors">View Project</button>
+</div>
+<!-- Project Card 3 -->
+<div class="group cursor-pointer">
+<div class="aspect-video rounded-xl overflow-hidden mb-4 border border-white/10 bg-brand-navy ring-brand-accent/0 group-hover:ring-2 transition-all">
+<img alt="Project 3" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDik6JgKkYTRVuN5TwDXfOPsAiF_CNxXmZsdKctp4HlscHeajMgpRhauhl7NnL98tC_MQZ4nhMTro0Dr0po2qupY5FQGaBkWN1Gyz22qZRHY7Mz9X4zd0CkkVXchSrqi9ayEiGJ860GAI473XLJA1QYTB_LoiaMDrkWyl_APdI0nNbWA2d9AyGIZOMYY0nCJ5XoZ-GShgRovOWTFt35U7p2pjRAzpMCzv5fIHkytSGlKUZsfeb9QEbIOUQHOBV9x6iuNoMltlgRuyNF"/>
+</div>
+<h4 class="text-white font-semibold">Inventory System</h4>
+<p class="text-xs text-gray-500 mt-1">Edited: Apr 27, 2023</p>
+<button class="w-full mt-4 py-2 bg-white/5 rounded-lg text-sm font-medium hover:bg-white/10 transition-colors">View Project</button>
+</div>
+</div>
+</div>
+<!-- END: RecentProjects -->
+<!-- BEGIN: DevelopmentRoadmap -->
+<div class="glass-card p-8 rounded-3xl flex flex-col" data-purpose="roadmap">
+<div class="flex items-center justify-between mb-10">
+<h2 class="text-xl font-bold text-white">Development Roadmap</h2>
+<div class="w-24 h-2.5 bg-white/5 rounded-full overflow-hidden">
+<div class="h-full w-4/5 bg-brand-accent shadow-[0_0_10px_#3b82f6]"></div>
+</div>
+</div>
+<div class="space-y-8 relative">
+<!-- Step 1 -->
+<div class="flex gap-4 relative z-10">
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-brand-accent flex items-center justify-center text-white accent-border-glow">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path></svg>
+</div>
+<div class="roadmap-line h-10 mt-2"></div>
+</div>
+<div>
+<h4 class="text-white font-bold">Custom editor shell</h4>
+<p class="text-xs text-gray-500 mt-1">GrapesJS canvas with custom sidebars and style controls.</p>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="flex gap-4 relative z-10">
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full border-2 border-brand-accent bg-brand-charcoal flex items-center justify-center text-brand-accent">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path></svg>
+</div>
+<div class="roadmap-line h-10 mt-2 opacity-30"></div>
+</div>
+<div>
+<h4 class="text-white font-bold">Commerce flow</h4>
+<p class="text-xs text-gray-500 mt-1">Product inventory, product blocks, and cart preview.</p>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="flex gap-4 relative z-10">
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full border-2 border-white/10 bg-brand-charcoal flex items-center justify-center text-gray-600">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path></svg>
+</div>
+</div>
+<div>
+<h4 class="text-gray-400 font-bold">CMS manager</h4>
+<p class="text-xs text-gray-600 mt-1">CMS inventory, product, blocks, and cart preview.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- END: DevelopmentRoadmap -->
+</section>
+</main>
+<!-- END: MainContent -->
+</body></html><!-- MISSING_IMAGES:
+- Project 1 thumbnail preview (using placehold.co)
+- Project 2 thumbnail preview (using placehold.co)
+- Project 3 thumbnail preview (using placehold.co)
+-->

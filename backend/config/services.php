@@ -28,6 +28,11 @@ return [
         'flash_model' => env('GEMINI_FLASH_MODEL', 'gemini-3.5-flash'),
     ],
 
+    'stitch' => [
+        'key' => env('STITCH_API_KEY'),
+        'project_id' => env('STITCH_PROJECT_ID'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

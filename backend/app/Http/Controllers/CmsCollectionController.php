@@ -10,11 +10,13 @@ class CmsCollectionController extends Controller
 {
     public function index(Project $project)
     {
+        abort_unless($project->user_id === auth()->id(), 403);
         return response()->json($project->collections()->withCount('items')->get());
     }
 
     public function store(Request $request, Project $project)
     {
+        abort_unless($project->user_id === auth()->id(), 403);
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:cms_collections,slug,NULL,id,project_id,'.$project->id,
@@ -31,6 +33,7 @@ class CmsCollectionController extends Controller
 
     public function update(Request $request, Project $project, CmsCollection $collection)
     {
+        abort_unless($project->user_id === auth()->id(), 403);
         abort_unless($collection->project_id === $project->id, 404);
 
         $validated = $request->validate([
@@ -49,6 +52,7 @@ class CmsCollectionController extends Controller
 
     public function destroy(Project $project, CmsCollection $collection)
     {
+        abort_unless($project->user_id === auth()->id(), 403);
         abort_unless($collection->project_id === $project->id, 404);
 
         $collection->delete();

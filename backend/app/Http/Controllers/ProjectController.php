@@ -10,9 +10,16 @@ class ProjectController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Project::all());
+        return response()->json(
+            $request->user()->projects()->with(['pages' => function($q) { 
+                $q->orderBy('id', 'asc')->limit(1); 
+            }])
+            ->withCount(['pages', 'products', 'collections'])
+            ->orderBy('updated_at', 'desc')
+            ->get()
+        );
     }
 
     public function store(Request $request)
@@ -23,19 +30,32 @@ class ProjectController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $validated['user_id'] = auth()->id() ?: \App\Models\User::first()->id;
+        $validated['user_id'] = $request->user()->id;
 
         $project = Project::create($validated);
-        return response()->json($project, 201);
+        
+        // Create default Home Page
+        $project->pages()->create([
+            'title' => 'Home Page',
+            'slug' => 'home',
+            'html' => '<div class="w-full h-full bg-[#0a0b10] text-white flex flex-col justify-center items-center p-12"><h1>Welcome to ' . $project->name . '</h1><p class="text-gray-400 mt-2">Start editing this page in the visual builder.</p></div>',
+            'css' => '',
+            'components' => [],
+            'styles' => [],
+        ]);
+
+        return response()->json($project->load('pages'), 201);
     }
 
     public function show(Project $project)
     {
-        return response()->json($project);
+        abort_unless($project->user_id === auth()->id(), 403);
+        return response()->json($project->load('pages'));
     }
 
     public function update(Request $request, Project $project)
     {
+        abort_unless($project->user_id === auth()->id(), 403);
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'slug' => 'sometimes|required|string|unique:projects,slug,' . $project->id,
@@ -50,6 +70,7 @@ class ProjectController extends Controller
 
     public function destroy(Project $project)
     {
+        abort_unless($project->user_id === auth()->id(), 403);
         $project->delete();
         return response()->json(null, 204);
     }

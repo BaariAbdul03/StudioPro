@@ -17,8 +17,8 @@
 |---|---|---|
 | **Editor Core** | Headless GrapesJS (v0.23.2) | Provides HTML/CSS parser, page components tree, drag-and-drop, and styling engine. |
 | **Bespoke UI Shell** | Vue 3 + Tailwind/Custom CSS | Disables default GrapesJS panels in favor of Vue-bound controls styled to match the design. |
-| **Code Editor** | Monaco Editor | Integrated directly into the style panel and code embed blocks for custom styling/scripts. |
-| **Rich Text Editor** | TipTap (ProseMirror) | Replaces default GrapesJS text editor for clean Shopify-like inline formatting. |
+| **Code Editor** | Styled Custom Textareas | Integrated directly into the style panel and code embed blocks for custom styling/scripts, avoiding bundle size overhead. |
+| **Rich Text Controls** | GrapesJS text editing + custom Vue controls | Keeps the editor bundle lightweight while preserving inline copy editing and AI assist workflows. |
 
 ---
 
@@ -338,7 +338,7 @@ CREATE TABLE cms_items (
 *   **Timeline Editor:** Visual keyframe timeline where users adjust duration, delay, stagger, and easing curves (using cubic-bezier) for target elements. Translate these definitions into CSS transitions or lightweight Web Animation API (WAAPI) configurations.
 
 ### 5.2 Custom Script Injection
-*   **Code Embed Block:** A block rendering a sandboxed iframe. Double-clicking launches a Monaco editor modal to write custom HTML, CSS, or JS scripts.
+*   **Code Embed Block:** A block rendering a sandboxed iframe. Selection launches styled textarea custom code fields to write custom HTML, CSS, or JS scripts.
 *   **Page Script settings:** Textareas for adding tracking pixels, custom styles, or scripts to `<head>` and `<body>` tags.
 
 ### 5.3 Forms & SEO Panels
@@ -347,7 +347,7 @@ CREATE TABLE cms_items (
 
 ### 5.4 Deliverables
 *   Webflow-like custom animations running natively on the canvas.
-*   Monaco script editor integrated into the workspace.
+*   Styled textarea custom code editor integrated into the workspace.
 *   SEO meta tagging panel.
 *   Custom form submission handler routing form entries to database logs.
 
@@ -404,7 +404,7 @@ CREATE TABLE page_versions (
 ┌────────────────────────────────────────────────────────┐
 │                        Gemini API                      │
 ├──────────────────────────┬─────────────────────────────┤
-│      Gemini 3.5 Pro      │      Gemini 3.5 Flash       │
+│      Gemini configured    │      Gemini 3.5 Flash       │
 ├──────────────────────────┼─────────────────────────────┤
 │ - Complex Reasoning      │ - Ultra-Low Latency         │
 │ - Structure Generation   │ - High-Speed Completion     │
@@ -415,7 +415,7 @@ CREATE TABLE page_versions (
 ```
 
 ### 7.2 AI Implementations
-*   **AI Page Generation (Gemini 3.5 Pro):**
+*   **AI Page Generation (Gemini configured model):**
     *   Input: "Create a modern landing page for an organic matcha powder shop with a hero, 3 feature grids, and a pricing table."
     *   Process: System provides a structured prompt containing the page builder's component schemas.
     *   Output: The model returns a structured JSON payload mapping GrapesJS components.
@@ -450,5 +450,5 @@ CREATE TABLE page_versions (
 *   **Multi-Tenancy:** Disabled. Structured as a robust, single-user dashboard for managing multiple projects.
 *   **Hosting Model:** Self-hosted by users. App provides optimized flat file ZIP bundles or publishes files directly over SFTP/FTP/S3 bucket webhooks.
 *   **E-Commerce:** Prioritized. Moved to Phase 3 right after the visual editor core is finished.
-*   **AI Integration:** Configured with Google Gemini 3.5 Pro (layout structures) and Gemini 3.5 Flash (copywriting, meta tags).
+*   **AI Integration:** Configured with the available Gemini model for layout structures and Gemini 3.5 Flash for copywriting/meta tags. In the current local environment, `gemini-3.5-flash` is the verified working model.
 *   **UI Customization:** Open-source GrapesJS core container wrapper. Visual editor interface customized from scratch using the **Stitch Pro-grade Minimalist Dark Theme** parameters.

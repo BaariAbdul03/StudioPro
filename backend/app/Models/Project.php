@@ -31,4 +31,9 @@ class Project extends Model
     {
         return $this->hasMany(FormSubmission::class);
     }
+
+    public function assets()
+    {
+        return $this->hasMany(Asset::class);
+    }
 }

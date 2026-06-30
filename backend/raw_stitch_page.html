@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Matcha Ritual | Pure Energy, Grounded Calm</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "surface-bright": "#faf9f7",
+                "on-error": "#ffffff",
+                "primary-fixed": "#d0e9d4",
+                "on-secondary-container": "#5a682f",
+                "tertiary-fixed": "#e1e5cf",
+                "surface-container-high": "#e9e8e6",
+                "surface-dim": "#dadad8",
+                "inverse-on-surface": "#f1f1ef",
+                "secondary": "#56642b",
+                "on-secondary-fixed-variant": "#3e4c16",
+                "on-tertiary-fixed-variant": "#444939",
+                "on-tertiary": "#ffffff",
+                "surface-container-highest": "#e3e2e0",
+                "error": "#ba1a1a",
+                "secondary-container": "#d6e7a1",
+                "outline": "#737973",
+                "tertiary": "#14180c",
+                "inverse-surface": "#2f3130",
+                "surface-container": "#efeeec",
+                "on-tertiary-container": "#909582",
+                "on-tertiary-fixed": "#191d10",
+                "surface-container-lowest": "#ffffff",
+                "on-secondary": "#ffffff",
+                "on-surface-variant": "#434843",
+                "secondary-fixed-dim": "#bdce89",
+                "secondary-fixed": "#d9eaa3",
+                "on-primary-container": "#819986",
+                "tertiary-container": "#292d1f",
+                "background": "#faf9f7",
+                "tertiary-fixed-dim": "#c5c9b4",
+                "primary-container": "#1b3022",
+                "on-error-container": "#93000a",
+                "surface": "#faf9f7",
+                "on-primary-fixed-variant": "#364c3c",
+                "outline-variant": "#c3c8c1",
+                "error-container": "#ffdad6",
+                "primary": "#061b0e",
+                "on-secondary-fixed": "#161f00",
+                "surface-container-low": "#f4f3f1",
+                "surface-tint": "#4d6453",
+                "on-background": "#1a1c1b",
+                "inverse-primary": "#b4cdb8",
+                "on-primary-fixed": "#0b2013",
+                "on-surface": "#1a1c1b",
+                "surface-variant": "#e3e2e0",
+                "on-primary": "#ffffff",
+                "primary-fixed-dim": "#b4cdb8"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "unit": "8px",
+                "section-gap": "120px",
+                "margin-mobile": "20px",
+                "gutter": "24px",
+                "container-max": "1280px",
+                "margin-desktop": "64px"
+            },
+            "fontFamily": {
+                "headline-md": ["Playfair Display"],
+                "display-lg": ["Playfair Display"],
+                "display-lg-mobile": ["Playfair Display"],
+                "headline-sm": ["Playfair Display"],
+                "label-caps": ["Inter"],
+                "body-lg": ["Inter"],
+                "body-md": ["Inter"]
+            },
+            "fontSize": {
+                "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "500"}],
+                "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                "display-lg-mobile": ["40px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                "headline-sm": ["24px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .reveal { opacity: 0; transform: translateY(20px); transition: all 0.8s ease-out; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        .ambient-shadow { box-shadow: 0px 20px 40px rgba(27, 48, 34, 0.04); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-bright text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed-variant">
+<!-- TopAppBar -->
+<header class="bg-surface-bright dark:bg-surface-bright border-b border-primary/10 docked full-width top-0 sticky z-50">
+<nav class="flex justify-between items-center w-full px-margin-desktop py-unit max-w-container-max mx-auto">
+<div class="cursor-pointer transition-all duration-500 ease-in-out hover:opacity-70">
+<span class="material-symbols-outlined text-primary">menu</span>
+</div>
+<div class="font-display-lg text-headline-sm tracking-widest text-primary dark:text-primary cursor-pointer">
+                MATCHA RITUAL
+            </div>
+<div class="flex items-center gap-4">
+<span class="hidden md:block font-label-caps text-label-caps tracking-widest text-primary cursor-pointer hover:opacity-70 transition-opacity">MEMBERSHIP</span>
+<div class="cursor-pointer transition-all duration-500 ease-in-out hover:opacity-70">
+<span class="material-symbols-outlined text-primary">shopping_bag</span>
+</div>
+</div>
+</nav>
+</header>
+<main>
+<!-- Hero Section -->
+<section class="relative min-h-[795px] flex items-center justify-center overflow-hidden">
+<div class="absolute inset-0 z-0">
+<div class="w-full h-full" data-alt="A cinematic, ultra-high-definition close-up of a traditional bamboo whisk (chasen) mixing vibrant, frothy emerald green matcha in a textured dark ceramic bowl. The scene is bathed in soft, diffused morning sunlight, casting gentle shadows across a minimalist wooden surface. The atmosphere is quiet, serene, and premium, emphasizing the tactile ritual of tea preparation with a sophisticated, light-mode aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuALO6zEMY0l1FZKgwuLwvKk29rzv8Vi-6ZbgjldcjWyNYf5C5hsjsNqGiPacX-9DdKKa6onyUT30RoqWXDgWELbNKkOd_YoJIjM-Ei5FnSKn5TUIsEWCbADnt8brXb_ovqnC9hN08eI4qI05t6q-dyqGdb1vnizTjtOto-IMMDG_y39hPGK92u3mtep1aqQ-j7orOKOiwvvgN1T9kFTUXYMV8wON8e1VmOt6DYOdfLBe0GEC_HO3IK_HPmVRekjPIfJYUTPfVV7GLk')"></div>
+<div class="absolute inset-0 bg-primary/10"></div>
+</div>
+<div class="relative z-10 text-center px-margin-mobile max-w-4xl">
+<h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-white mb-8 tracking-tight drop-shadow-sm">
+                    Pure Energy,<br/>Grounded Calm
+                </h1>
+<p class="font-body-lg text-body-lg text-white/90 mb-12 max-w-2xl mx-auto">
+                    Experience the ancient art of focus. Our stone-ground ceremonial grade matcha provides a sustained, jitters-free energy ritual for the modern mind.
+                </p>
+<button class="bg-primary-container text-white px-10 py-5 rounded-none font-label-caps text-label-caps tracking-widest transition-all duration-500 hover:bg-primary-container/90 hover:scale-[1.02]">
+                    SHOP THE COLLECTION
+                </button>
+</div>
+</section>
+<!-- Feature Grid Section -->
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Feature 1 -->
+<div class="reveal flex flex-col items-center text-center p-unit">
+<div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-8">
+<span class="material-symbols-outlined text-primary text-3xl">eco</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-4">100% Organic</h3>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-xs">
+                        Hand-picked leaves from sustainable estates in Uji, Japan. Certified organic and processed with ancestral care.
+                    </p>
+<span class="mt-6 font-label-caps text-label-caps text-primary/40 uppercase tracking-[0.2em]">Provenance</span>
+</div>
+<!-- Feature 2 -->
+<div class="reveal flex flex-col items-center text-center p-unit">
+<div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-8">
+<span class="material-symbols-outlined text-primary text-3xl">psychology</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-4">Sustained Focus</h3>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-xs">
+                        Harness the rare L-theanine amino acid for a calm, alert mental state without the caffeine crash.
+                    </p>
+<span class="mt-6 font-label-caps text-label-caps text-primary/40 uppercase tracking-[0.2em]">Bio-active</span>
+</div>
+<!-- Feature 3 -->
+<div class="reveal flex flex-col items-center text-center p-unit">
+<div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-8">
+<span class="material-symbols-outlined text-primary text-3xl">auto_awesome</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-4">Antioxidant Rich</h3>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-xs">
+                        A concentrated source of EGCG catechins, supporting cellular health and natural vitality in every bowl.
+                    </p>
+<span class="mt-6 font-label-caps text-label-caps text-primary/40 uppercase tracking-[0.2em]">Longevity</span>
+</div>
+</div>
+</section>
+<!-- Pricing Table Section -->
+<section class="bg-surface-container-low py-section-gap px-margin-mobile md:px-margin-desktop">
+<div class="max-w-container-max mx-auto">
+<div class="text-center mb-20 reveal">
+<span class="font-label-caps text-label-caps tracking-[0.3em] text-on-primary-container mb-4 block">SELECT YOUR EXPERIENCE</span>
+<h2 class="font-headline-md text-headline-md text-primary">Curated Selections</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-end">
+<!-- Tier 1 -->
+<div class="reveal ambient-shadow bg-surface-bright p-10 flex flex-col border border-primary/5">
+<h4 class="font-headline-sm text-headline-sm text-primary mb-2">The Starter Kit</h4>
+<div class="flex items-baseline mb-8">
+<span class="font-headline-sm text-headline-sm text-primary">$29</span>
+<span class="font-body-md text-body-md text-on-surface-variant ml-2">/ month</span>
+</div>
+<ul class="space-y-4 mb-12 flex-grow">
+<li class="flex items-center gap-3 font-body-md text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-sm">check</span> 30g Culinary Grade
+                            </li>
+<li class="flex items-center gap-3 font-body-md text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-sm">check</span> Daily Energy Guide
+                            </li>
+<li class="flex items-center gap-3 font-body-md text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-sm">check</span> Bamboo Tea Scoop
+                            </li>
+</ul>
+<button class="w-full py-4 border border-primary text-primary font-label-caps text-label-caps tracking-widest hover:bg-primary hover:text-white transition-colors duration-300">
+                            SELECT
+                        </button>
+</div>
+<!-- Tier 2 (Most Ritualistic) -->
+<div class="reveal ambient-shadow bg-primary-container p-12 flex flex-col relative scale-105 z-10">
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-secondary-container text-on-secondary-container px-4 py-1 font-label-caps text-[10px] tracking-widest">
+                            MOST RITUALISTIC
+                        </div>
+<h4 class="font-headline-sm text-headline-sm text-white mb-2">Ceremonial Grade</h4>
+<div class="flex items-baseline mb-8">
+<span class="font-headline-sm text-headline-sm text-white">$45</span>
+<span class="font-body-md text-body-md text-white/60 ml-2">/ month</span>
+</div>
+<ul class="space-y-4 mb-12 flex-grow">
+<li class="flex items-center gap-3 font-body-md text-white/90">
+<span class="material-symbols-outlined text-white text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span> 30g First Harvest
+                            </li>
+<li class="flex items-center gap-3 font-body-md text-white/90">
+<span class="material-symbols-outlined text-white text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span> Ritual Masterclass Access
+                            </li>
+<li class="flex items-center gap-3 font-body-md text-white/90">
+<span class="material-symbols-outlined text-white text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span> Handmade Whisk (Chasen)
+                            </li>
+<li class="flex items-center gap-3 font-body-md text-white/90">
+<span class="material-symbols-outlined text-white text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span> Monthly Meditation Audio
+                            </li>
+</ul>
+<button class="w-full py-5 bg-white text-primary-container font-label-caps text-label-caps tracking-widest hover:bg-surface-bright transition-colors duration-300">
+                            SELECT
+                        </button>
+</div>
+<!-- Tier 3 -->
+<div class="reveal ambient-shadow bg-surface-bright p-10 flex flex-col border border-primary/5">
+<h4 class="font-headline-sm text-headline-sm text-primary mb-2">Premium Harvest</h4>
+<div class="flex items-baseline mb-8">
+<span class="font-headline-sm text-headline-sm text-primary">$68</span>
+<span class="font-body-md text-body-md text-on-surface-variant ml-2">/ month</span>
+</div>
+<ul class="space-y-4 mb-12 flex-grow">
+<li class="flex items-center gap-3 font-body-md text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-sm">check</span> 60g Competition Grade
+                            </li>
+<li class="flex items-center gap-3 font-body-md text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-sm">check</span> Wabi-Sabi Ceramic Bowl
+                            </li>
+<li class="flex items-center gap-3 font-body-md text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-sm">check</span> Personalized Tea Sommelier
+                            </li>
+</ul>
+<button class="w-full py-4 border border-primary text-primary font-label-caps text-label-caps tracking-widest hover:bg-primary hover:text-white transition-colors duration-300">
+                            SELECT
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Newsletter Section -->
+<section class="py-section-gap px-margin-mobile relative overflow-hidden">
+<div class="max-w-2xl mx-auto text-center reveal">
+<span class="font-label-caps text-label-caps tracking-[0.4em] text-primary/40 mb-6 block">INVITATION</span>
+<h2 class="font-display-lg text-headline-md md:text-headline-md text-primary mb-8">Join the Weekly Ritual</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-12">
+                    Receive seasonal brewing techniques, mindfulness exercises, and exclusive harvest announcements delivered directly to your inner sanctum.
+                </p>
+<form class="flex flex-col md:flex-row gap-4 max-w-md mx-auto" onsubmit="event.preventDefault(); alert('Ritual joined.');">
+<input class="flex-grow bg-transparent border-b border-primary/20 focus:border-primary border-t-0 border-x-0 outline-none px-0 py-4 font-label-caps text-label-caps tracking-widest text-primary placeholder:text-primary/30" placeholder="EMAIL ADDRESS" required="" type="email"/>
+<button class="bg-primary text-white px-8 py-4 font-label-caps text-label-caps tracking-widest hover:opacity-90 transition-opacity whitespace-nowrap" type="submit">
+                        SUBSCRIBE
+                    </button>
+</form>
+</div>
+<!-- Decorative Element -->
+<div class="absolute -bottom-24 -right-24 w-64 h-64 opacity-[0.03] pointer-events-none">
+<span class="material-symbols-outlined text-[256px] text-primary">eco</span>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container dark:bg-surface-container w-full">
+<div class="flex flex-col items-center w-full px-margin-desktop py-section-gap max-w-container-max mx-auto text-center">
+<div class="font-display-lg text-headline-md text-primary dark:text-primary mb-12">MATCHA RITUAL</div>
+<div class="flex flex-wrap justify-center gap-x-12 gap-y-6 mb-16">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary transition-colors duration-300" href="#">Sourcing</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary transition-colors duration-300" href="#">Ceremony</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary transition-colors duration-300" href="#">Wholesale</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary transition-colors duration-300" href="#">Sustainability</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary transition-colors duration-300" href="#">Privacy</a>
+</div>
+<div class="font-body-md text-body-md text-on-surface-variant opacity-60">
+                © 2024 MATCHA RITUAL. BREATHED INTO EXISTENCE.
+            </div>
+</div>
+</footer>
+<script>
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // Smooth header scroll effect
+        let lastScroll = 0;
+        const header = document.querySelector('header');
+        
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+            if (currentScroll <= 0) {
+                header.classList.remove('shadow-sm');
+                return;
+            }
+            
+            if (currentScroll > lastScroll) {
+                // Scrolling down
+                header.style.transform = 'translateY(-100%)';
+            } else {
+                // Scrolling up
+                header.style.transform = 'translateY(0)';
+                header.classList.add('shadow-sm');
+            }
+            lastScroll = currentScroll;
+        });
+    </script>
+</body></html>

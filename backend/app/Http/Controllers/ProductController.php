@@ -10,11 +10,13 @@ class ProductController extends Controller
 {
     public function index(Project $project)
     {
+        abort_unless($project->user_id === auth()->id(), 403);
         return response()->json($project->products()->with('variants')->get());
     }
 
     public function store(Request $request, Project $project)
     {
+        abort_unless($project->user_id === auth()->id(), 403);
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:products,slug,NULL,id,project_id,'.$project->id,
@@ -34,6 +36,7 @@ class ProductController extends Controller
 
     public function update(Request $request, Project $project, Product $product)
     {
+        abort_unless($project->user_id === auth()->id(), 403);
         abort_unless($product->project_id === $project->id, 404);
 
         $validated = $request->validate([
@@ -55,6 +58,7 @@ class ProductController extends Controller
 
     public function destroy(Project $project, Product $product)
     {
+        abort_unless($project->user_id === auth()->id(), 403);
         abort_unless($product->project_id === $project->id, 404);
 
         $product->delete();

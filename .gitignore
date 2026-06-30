@@ -1,1 +1,10 @@
 stitch_advanced_visual_page_builder
+.env
+.env.*
+vite-*.log
+frontend/test-results/
+frontend/playwright-report/
+frontend/node_modules/
+backend/vendor/
+backend/storage/logs/*.log
+Supabase-pass.txt

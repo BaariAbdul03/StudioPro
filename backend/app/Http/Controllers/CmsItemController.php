@@ -10,11 +10,13 @@ class CmsItemController extends Controller
 {
     public function index(CmsCollection $collection)
     {
+        abort_unless($collection->project->user_id === auth()->id(), 403);
         return response()->json($collection->items()->orderBy('created_at', 'desc')->get());
     }
 
     public function store(Request $request, CmsCollection $collection)
     {
+        abort_unless($collection->project->user_id === auth()->id(), 403);
         $validated = $request->validate([
             'slug' => 'required|string|max:255|unique:cms_items,slug,NULL,id,collection_id,'.$collection->id,
             'data' => 'required|array',
@@ -27,6 +29,7 @@ class CmsItemController extends Controller
 
     public function update(Request $request, CmsCollection $collection, CmsItem $item)
     {
+        abort_unless($collection->project->user_id === auth()->id(), 403);
         abort_unless($item->collection_id === $collection->id, 404);
 
         $validated = $request->validate([
@@ -41,6 +44,7 @@ class CmsItemController extends Controller
 
     public function destroy(CmsCollection $collection, CmsItem $item)
     {
+        abort_unless($collection->project->user_id === auth()->id(), 403);
         abort_unless($item->collection_id === $collection->id, 404);
 
         $item->delete();

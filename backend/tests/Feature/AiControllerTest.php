@@ -13,7 +13,10 @@ class AiControllerTest extends TestCase
 
     public function test_ai_page_generation_returns_builder_payload(): void
     {
-        config(['services.gemini.key' => null]);
+        config([
+            'services.gemini.key' => null,
+            'services.stitch.key' => null,
+        ]);
 
         $user = User::factory()->create();
         $this->actingAs($user);
@@ -36,7 +39,10 @@ class AiControllerTest extends TestCase
 
     public function test_ai_copy_and_seo_work_without_gemini_key(): void
     {
-        config(['services.gemini.key' => null]);
+        config([
+            'services.gemini.key' => null,
+            'services.stitch.key' => null,
+        ]);
 
         $user = User::factory()->create();
         $this->actingAs($user);

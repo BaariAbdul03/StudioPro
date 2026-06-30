@@ -11,46 +11,52 @@ class PageExportController extends Controller
 {
     public function download(Project $project, Page $page)
     {
+        abort_unless($project->user_id === auth()->id(), 403);
         abort_unless($page->project_id === $project->id, 404);
         abort_unless(class_exists(ZipArchive::class), 500, 'ZipArchive extension is required for static exports.');
 
         $meta = $page->meta ?? [];
         $exportId = 'page-export-'.$project->id.'-'.$page->id.'-'.now()->format('YmdHis');
         $directory = storage_path('app/exports/'.$exportId);
+        $zipPath = storage_path('app/exports/'.$exportId.'.zip');
 
         if (! is_dir($directory.'/assets')) {
             mkdir($directory.'/assets', 0775, true);
         }
 
-        $this->copyPublicAssets($directory);
+        try {
+            $this->copyPublicAssets($directory);
 
-        $optimizedImages = $this->createWebpSidecars($directory.'/assets/images');
+            $optimizedImages = $this->createWebpSidecars($directory.'/assets/images');
 
-        file_put_contents($directory.'/index.html', $this->minifyHtml($this->buildHtml($project, $page, $meta)));
-        file_put_contents($directory.'/style.css', $this->buildCss($page));
-        file_put_contents($directory.'/runtime.js', $this->minifyJs($this->runtimeScript($project, $page)));
-        file_put_contents($directory.'/stripe-checkout.js', $this->minifyJs($this->checkoutScript()));
-        file_put_contents($directory.'/README.txt', "Static export for {$project->name} / {$page->title}\nGenerated: ".now()->toDateTimeString()."\nOptimized WebP sidecars: {$optimizedImages}\n");
+            file_put_contents($directory.'/index.html', $this->minifyHtml($this->buildHtml($project, $page, $meta)));
+            file_put_contents($directory.'/style.css', $this->buildCss($page));
+            file_put_contents($directory.'/runtime.js', $this->minifyJs($this->runtimeScript($project, $page)));
+            file_put_contents($directory.'/stripe-checkout.js', $this->minifyJs($this->checkoutScript()));
+            file_put_contents($directory.'/README.txt', "Static export for {$project->name} / {$page->title}\nGenerated: ".now()->toDateTimeString()."\nOptimized WebP sidecars: {$optimizedImages}\n");
 
-        $zipPath = storage_path('app/exports/'.$exportId.'.zip');
-        $zip = new ZipArchive();
-        $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+            $zip = new ZipArchive();
+            $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
-        $files = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::LEAVES_ONLY
-        );
+            $files = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::LEAVES_ONLY
+            );
 
-        foreach ($files as $file) {
-            if (! $file->isFile()) {
-                continue;
+            foreach ($files as $file) {
+                if (! $file->isFile()) {
+                    continue;
+                }
+
+                $relativePath = str_replace('\\', '/', substr($file->getPathname(), strlen($directory) + 1));
+                $zip->addFile($file->getPathname(), $relativePath);
             }
 
-            $relativePath = str_replace('\\', '/', substr($file->getPathname(), strlen($directory) + 1));
-            $zip->addFile($file->getPathname(), $relativePath);
+            $zip->close();
+        } finally {
+            // Always clean up the temp directory, even on failure
+            $this->deleteDirectory($directory);
         }
-
-        $zip->close();
 
         return Response::download($zipPath, $project->slug.'-'.$page->slug.'-static.zip')->deleteFileAfterSend(true);
     }
@@ -85,6 +91,7 @@ class PageExportController extends Controller
 <body>
 '.$html.'
 '.$bodyCode.'
+<script>window.STUDIOPRO_PROJECT_ID='.$project->id.'; window.STUDIOPRO_API_BASE_URL="'.rtrim(url('/'), '/').'";</script>
 <script src="./runtime.js"></script>
 <script src="./stripe-checkout.js"></script>
 </body>
@@ -140,6 +147,28 @@ class PageExportController extends Controller
         $css = preg_replace('/\s+/', ' ', $css) ?? $css;
 
         return trim($css);
+    }
+
+    private function deleteDirectory(string $dir): void
+    {
+        if (! is_dir($dir)) {
+            return;
+        }
+
+        $files = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        );
+
+        foreach ($files as $file) {
+            if ($file->isDir()) {
+                @rmdir($file->getPathname());
+            } else {
+                @unlink($file->getPathname());
+            }
+        }
+
+        @rmdir($dir);
     }
 
     private function minifyHtml(string $html): string
@@ -266,6 +295,6 @@ JS;
 
     private function checkoutScript(): string
     {
-        return 'window.StudioProCheckout = { start(items) { return fetch("/api/checkout/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items }) }); } };';
+        return 'window.StudioProCheckout = { start(payload) { const data = Array.isArray(payload) ? { items: payload } : (payload || {}); data.project_id = data.project_id || window.STUDIOPRO_PROJECT_ID; data.customer_email = data.customer_email || "customer@example.com"; const apiBase = (data.apiBaseUrl || window.STUDIOPRO_API_BASE_URL || "").replace(/\/$/, ""); return fetch(apiBase + "/api/checkout/session", { method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify(data) }); } };';
     }
 }

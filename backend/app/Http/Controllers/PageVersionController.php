@@ -11,6 +11,7 @@ class PageVersionController extends Controller
 {
     public function index(Project $project, Page $page)
     {
+        abort_unless($project->user_id === auth()->id(), 403);
         abort_unless($page->project_id === $project->id, 404);
 
         return response()->json(
@@ -22,6 +23,7 @@ class PageVersionController extends Controller
 
     public function store(Request $request, Project $project, Page $page)
     {
+        abort_unless($project->user_id === auth()->id(), 403);
         abort_unless($page->project_id === $project->id, 404);
 
         $validated = $request->validate([
@@ -47,6 +49,7 @@ class PageVersionController extends Controller
 
     public function restore(Project $project, Page $page, PageVersion $version)
     {
+        abort_unless($project->user_id === auth()->id(), 403);
         abort_unless($page->project_id === $project->id, 404);
         abort_unless($version->page_id === $page->id, 404);
 

@@ -11,6 +11,8 @@ class FormSubmissionController extends Controller
 {
     public function index(Project $project)
     {
+        abort_unless($project->user_id === auth()->id(), 403);
+
         return response()->json(
             $project->formSubmissions()
                 ->latest()
