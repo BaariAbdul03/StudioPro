@@ -11,14 +11,14 @@ COPY frontend/ ./
 ENV VITE_API_BASE_URL=/api
 RUN npm run build
 
-# --- Stage 2: Build FrankenPHP Backend Server ---
-FROM dunglas/frankenphp:1-php8.3-alpine AS runner
+# --- Stage 2: Build FrankenPHP Backend Server (Debian Bookworm) ---
+FROM dunglas/frankenphp:1-php8.3 AS runner
 
 # Copy official composer binary
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Install system dependencies and PHP extensions
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
     git \
     unzip \
@@ -28,7 +28,8 @@ RUN apk add --no-cache \
     pgsql \
     opcache \
     zip \
-    bcmath
+    bcmath \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
