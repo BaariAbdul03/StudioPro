@@ -46,19 +46,40 @@ To prevent `404 Not Found` errors when directly visiting router paths (like `/ed
 
 ## ⚙️ Step 2: Backend Deployment (Laravel 13 REST API)
 
-Deploy the backend to a PaaS provider (Render, Fly.io, Railway) or VPS (using Laravel Forge).
+To prevent cold starts and sleeping containers (a major limitation of Render's free tier), the recommended strategy is to deploy the backend to a cheap Virtual Private Server (VPS) starting at $4–$5/month (e.g., Hetzner Cloud or DigitalOcean) managed by **Coolify** (a free, self-hosted open-source Heroku alternative).
 
-### 1. Environment Configuration (`.env`)
-Configure the production environment variables in your server's settings panel. Do not commit these values to source control.
+### Why VPS + Coolify?
+* **Always-On:** The container never sleeps. Zero cold-start delays.
+* **Low Cost:** Host the API backend, Postgres database, and Redis cache all on a single $4/month VPS.
+* **Zero Complexity:** Coolify handles automatic Git-push deployments, Let's Encrypt SSL certificates, and Docker container routing automatically.
+
+### 1. Backend Dockerfile Configuration
+The application is pre-configured with a production-ready [backend/Dockerfile](file:///d:/PageBuilder/backend/Dockerfile) utilizing **FrankenPHP**.
+* **FrankenPHP** is a modern PHP server (written in Go) that runs your Laravel API at extreme speed inside a single container.
+* No need to set up Nginx, PHP-FPM, or Unix sockets separately.
+
+### 2. Coolify Setup Steps
+1. Provision a VPS (e.g. Hetzner CX22 or DigitalOcean basic Droplet).
+2. Install Coolify by running this command on the server via SSH:
+   ```bash
+   curl -fsSL https://coolify.io/install.sh | bash
+   ```
+3. Open the Coolify dashboard in your browser.
+4. Add a new **Resource** -> **Application** and link it to your GitHub repository: `https://github.com/BaariAbdul03/StudioPro.git`
+5. Select the `backend` directory as the build root, and choose **Dockerfile** as the build pack (Coolify will automatically build the `Dockerfile` we created).
+6. Set the application domain (e.g., `api.yourdomain.com`). Coolify will configure the proxy and SSL certificate.
+
+### 3. Environment Configuration (`.env`)
+Configure these production environment variables in the Coolify dashboard under the **Environment Variables** tab:
 
 ```dotenv
 APP_NAME="StudioPro"
 APP_ENV=production
 APP_DEBUG=false
-APP_KEY=base64:z1mbawrkjfMNY+dWld9SGBSL2E2LZ/QMuebk8mCUP50= # Replace with generated key
-APP_URL=https://your-api-domain.com
+APP_KEY=base64:z1mbawrkjfMNY+dWld9SGBSL2E2LZ/QMuebk8mCUP50= # Replace with new generated key
+APP_URL=https://api.yourdomain.com
 
-# Supabase Postgres Connection
+# Database Connection (Supabase PgSQL)
 DB_CONNECTION=pgsql
 DB_HOST=aws-1-ap-southeast-1.pooler.supabase.com # Connection pooler hostname (IPv4)
 DB_PORT=6543
@@ -75,33 +96,15 @@ SESSION_DOMAIN=.yourdomain.com
 SANCTUM_STATEFUL_DOMAINS=your-frontend-domain.vercel.app
 ```
 
-### 2. Deployment Script commands
-Run these commands on the server during the build and release phases:
-
+### 4. Build and Release Execution
+When you trigger a deployment in Coolify, the following commands should be run during the container start phase (handled automatically inside the container or via the Post-deployment script settings in Coolify):
 ```bash
-# 1. Install optimized production dependencies
-composer install --no-dev --optimize-autoloader
-
-# 2. Cache configuration, routes, events, and views
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 php artisan event:cache
-
-# 3. Establish public storage link
-php artisan storage:link
-
-# 4. Migrate database schemas (runs safely in production)
 php artisan migrate --force
 ```
-
-### 3. Queue Worker & Cron
-If background queues are utilized (e.g. AI generator tasks):
-* Run a supervisor queue process: `php artisan queue:work`
-* Set up a crontab entry for scheduled tasks:
-  ```bash
-  * * * * * cd /path/to-your-backend && php artisan schedule:run >> /dev/null 2>&1
-  ```
 
 ---
 
