@@ -54,4 +54,5 @@ RUN printf 'Listen ${PORT}\n' > /etc/apache2/ports.conf
 ENV PORT=80
 ENV DB_SSLROOTCERT=/etc/ssl/certs/ca-certificates.crt
 EXPOSE 80
+USER www-data
 CMD ["sh", "/usr/local/bin/studio-start"]

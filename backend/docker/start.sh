@@ -28,6 +28,5 @@ export LARAVEL_STORAGE_PATH=/tmp/studio/storage
 mkdir -p "$APACHE_RUN_DIR" "$LARAVEL_STORAGE_PATH/framework/cache/data" \
     "$LARAVEL_STORAGE_PATH/framework/sessions" "$LARAVEL_STORAGE_PATH/framework/views" \
     "$LARAVEL_STORAGE_PATH/logs"
-chown -R www-data:www-data "$LARAVEL_STORAGE_PATH"
 
 exec apache2-foreground
