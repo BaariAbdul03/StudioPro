@@ -13,13 +13,11 @@
       </section>
     </main>
 
-    <SiteFooter />
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import SiteFooter from '../components/SiteFooter.vue'
 import StudioBrand from '../components/StudioBrand.vue'
 
 const props = defineProps({ kind: { type: String, required: true } })

@@ -1,18 +1,19 @@
 :root {
   color-scheme: light dark;
-  --studio-bg: light-dark(#f3f5f9, #111620);
-  --studio-panel: light-dark(#fff, #191f2c);
-  --studio-well: light-dark(#f7f9fd, #151b27);
-  --studio-hover: light-dark(#eef2fa, #232c3d);
-  --studio-line: light-dark(#d8e0ec, #333c50);
-  --studio-input-line: light-dark(#aebcd1, #56627a);
-  --studio-fg: light-dark(#17233c, #e1e7f5);
-  --studio-muted: light-dark(#53627e, #adb9d2);
-  --studio-link: light-dark(#2549cc, #a4b8ff);
-  --studio-action: light-dark(#2549cc, #3659d4);
-  --studio-action-hover: light-dark(#19369f, #2948bd);
-  --studio-grid: light-dark(#e6edfc, #151d2b);
-  --studio-grid-line: light-dark(#d5e0f6, #26344d);
+  --studio-bg: light-dark(#f3f5f9, #11151d);
+  --studio-panel: light-dark(#fff, #1b222d);
+  --studio-well: light-dark(#f7f9fd, #151b24);
+  --studio-hover: light-dark(#eef2fa, #252f3e);
+  --studio-selected: light-dark(#e9efff, #293953);
+  --studio-line: light-dark(#d8e0ec, #364255);
+  --studio-input-line: light-dark(#aebcd1, #617086);
+  --studio-fg: light-dark(#17233c, #e9edf7);
+  --studio-muted: light-dark(#53627e, #b1bdd0);
+  --studio-link: light-dark(#2549cc, #adc4ff);
+  --studio-action: light-dark(#2549cc, #365cce);
+  --studio-action-hover: light-dark(#19369f, #2d50bc);
+  --studio-grid: light-dark(#e6edfc, #111a26);
+  --studio-grid-line: light-dark(#d5e0f6, #28384d);
   --studio-error: light-dark(#9f2727, #ffa8a8);
   --studio-success: light-dark(#146046, #81dfbc);
 }
@@ -25,6 +26,7 @@
     --studio-panel: Canvas;
     --studio-well: Canvas;
     --studio-hover: Canvas;
+    --studio-selected: Canvas;
     --studio-fg: CanvasText;
     --studio-muted: CanvasText;
     --studio-link: LinkText;

@@ -449,7 +449,7 @@ watch([() => store.editor, blockSearch], filterBlocks)
 }
 .gjs-block-category .gjs-title {
   background-color: transparent !important;
-  color: #8d90a2 !important;
+  color: var(--studio-muted) !important;
   font-family: 'Geist', sans-serif !important;
   font-size: 10px !important;
   font-weight: 700 !important;
@@ -459,7 +459,7 @@ watch([() => store.editor, blockSearch], filterBlocks)
   border-bottom: 1px solid rgba(67, 70, 86, 0.2) !important;
   margin-bottom: 8px !important;
   display: flex !important;
-  justify-content: justify !important;
+  justify-content: space-between !important;
 }
 .gjs-block-category .gjs-title .gjs-caret-icon {
   display: none !important; /* Hide caret icon */
@@ -474,10 +474,10 @@ watch([() => store.editor, blockSearch], filterBlocks)
 }
 
 .gjs-block {
-  background: #131b2e !important;
-  border: 1px solid #434656 !important;
+  background: var(--studio-well) !important;
+  border: 1px solid var(--studio-line) !important;
   border-radius: 4px;
-  color: #c3c5d8 !important;
+  color: var(--studio-fg) !important;
   transition: all 0.2s;
   padding: 12px 6px !important;
   box-shadow: none !important;
@@ -496,12 +496,12 @@ watch([() => store.editor, blockSearch], filterBlocks)
   box-sizing: border-box !important;
 }
 .gjs-block:hover {
-  border-color: #2E62FF !important;
-  background-color: #161B22 !important;
-  color: #fff !important;
+  border-color: var(--studio-link) !important;
+  background-color: var(--studio-hover) !important;
+  color: var(--studio-fg) !important;
 }
 .gjs-block:hover span.material-symbols-outlined {
-  color: #2E62FF !important;
+  color: var(--studio-link) !important;
 }
 
 /* Horizontal styling for Heading & Paragraph blocks in Typography category */
@@ -519,12 +519,12 @@ watch([() => store.editor, blockSearch], filterBlocks)
 
 /* Layer Navigator styling to match StudioPro dark premium tree */
 .gjs-layer-header {
-  background-color: rgba(255, 255, 255, 0.03) !important; /* Grayish base when not selected */
+  background-color: var(--studio-well) !important; /* Grayish base when not selected */
   border: none !important;
   padding: 4px 8px !important;
   font-family: 'JetBrains Mono', monospace !important;
   font-size: 11px !important;
-  color: #9ca3af !important;
+  color: var(--studio-muted) !important;
   display: flex !important;
   align-items: center !important;
   gap: 8px !important;
@@ -535,30 +535,30 @@ watch([() => store.editor, blockSearch], filterBlocks)
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 .gjs-layer-header:hover {
-  background-color: rgba(46, 98, 255, 0.15) !important; /* Blue shade on hover */
-  border-left: 2px solid rgba(46, 98, 255, 0.5) !important;
-  color: #fff !important;
+  background-color: var(--studio-hover) !important; /* Blue shade on hover */
+  border-left: 2px solid var(--studio-link) !important;
+  color: var(--studio-fg) !important;
 }
 .gjs-layer-header:hover .gjs-layer-icon,
 .gjs-layer-header:hover .gjs-layer-caret {
-  color: #3b82f6 !important;
+  color: var(--studio-link) !important;
 }
 .gjs-layer.gjs-layer-active > .gjs-layer-header,
 .gjs-layer.gjs-selected > .gjs-layer-header,
 .gjs-layer-header.gjs-layer-active {
-  background-color: rgba(46, 98, 255, 0.35) !important; /* Richer/more bluish when selected */
-  border-left: 3px solid #2E62FF !important; /* Stronger bluish selected bar */
-  color: #fff !important;
+  background-color: var(--studio-selected) !important; /* Richer/more bluish when selected */
+  border-left: 3px solid var(--studio-link) !important; /* Stronger bluish selected bar */
+  color: var(--studio-fg) !important;
   font-weight: 500 !important;
   border-radius: 0 4px 4px 0 !important; /* rounded-r */
-  box-shadow: 0 0 10px rgba(46, 98, 255, 0.15) !important;
+  box-shadow: none !important;
 }
 .gjs-layer-title {
   font-family: 'JetBrains Mono', monospace !important;
   font-weight: 400 !important;
 }
 .gjs-layer-caret {
-  color: #8d90a2 !important;
+  color: var(--studio-muted) !important;
   margin-right: 4px !important;
   font-size: 14px !important;
   display: flex !important;
@@ -566,7 +566,7 @@ watch([() => store.editor, blockSearch], filterBlocks)
   transition: color 0.2s ease !important;
 }
 .gjs-layer-icon {
-  color: #8d90a2 !important;
+  color: var(--studio-muted) !important;
   margin-right: 8px !important;
   transition: color 0.2s ease !important;
 }
@@ -576,7 +576,7 @@ watch([() => store.editor, blockSearch], filterBlocks)
 .gjs-layer.gjs-layer-active > .gjs-layer-header .gjs-layer-caret,
 .gjs-layer.gjs-selected > .gjs-layer-header .gjs-layer-caret,
 .gjs-layer-header.gjs-layer-active .gjs-layer-caret {
-  color: #3b82f6 !important;
+  color: var(--studio-link) !important;
 }
 .gjs-layers {
   padding-left: 12px !important;

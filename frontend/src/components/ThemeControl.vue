@@ -1,8 +1,19 @@
 <template>
-  <label class="theme-control">
+  <fieldset v-if="cards" class="settings-theme">
+    <legend class="sr-only">Theme</legend>
+    <label v-for="option in ['system', 'light', 'dark']" :key="option" class="settings-theme-option">
+      <input type="radio" name="theme" :value="option" :checked="themePreference === option" @change="setTheme(option)">
+      <span class="settings-theme-sample" :data-sample="option === 'system' ? systemTheme : option" aria-hidden="true">
+        <span></span><span></span>
+      </span>
+      <strong>{{ option }}</strong>
+      <small v-if="option === 'system'">Follows device</small>
+    </label>
+  </fieldset>
+  <label v-else class="theme-control">
     Theme
-    <select :value="scheme" @change="apply($event.target.value, true)">
-      <option value="system">System ({{ system }})</option>
+    <select :value="themePreference" @change="setTheme($event.target.value)">
+      <option value="system">System ({{ systemTheme }})</option>
       <option value="light">Light</option>
       <option value="dark">Dark</option>
     </select>
@@ -10,44 +21,7 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { setTheme, systemTheme, themePreference } from '../theme'
 
-const key = 'studiopro.color-scheme'
-const root = document.documentElement
-const meta = document.querySelector('meta[name="color-scheme"]')
-const scheme = ref(root.dataset.studioTheme || 'system')
-const media = matchMedia('(prefers-color-scheme: dark)')
-const system = ref(media.matches ? 'dark' : 'light')
-
-function updateSystem(event) {
-  system.value = event.matches ? 'dark' : 'light'
-}
-
-function apply(value, persist = false) {
-  const selected = ['light', 'dark'].includes(value) ? value : 'system'
-  scheme.value = selected
-  if (selected === 'system') delete root.dataset.studioTheme
-  else root.dataset.studioTheme = selected
-  meta.content = selected === 'system' ? 'light dark' : selected
-  if (!persist) return
-  try {
-    if (selected === 'system') localStorage.removeItem(key)
-    else localStorage.setItem(key, selected)
-  } catch {
-    // The selected theme can still be used in the current document.
-  }
-}
-
-function sync(event) {
-  if (event.key === key || event.key === null) apply(event.newValue)
-}
-
-onMounted(() => {
-  media.addEventListener('change', updateSystem)
-  window.addEventListener('storage', sync)
-})
-onUnmounted(() => {
-  media.removeEventListener('change', updateSystem)
-  window.removeEventListener('storage', sync)
-})
+defineProps({ cards: Boolean })
 </script>

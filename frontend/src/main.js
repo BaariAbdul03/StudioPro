@@ -6,6 +6,7 @@ import './style.css'
 import './workspace.css'
 import './appearance.css'
 import './editor.css'
+import './site.css'
 
 try {
   localStorage.removeItem('studiopro_token')

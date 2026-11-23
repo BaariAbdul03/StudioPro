@@ -25,18 +25,17 @@ Route::get('/studio-published/images/{hash}.{extension}', [PublishedPageControll
 Route::get('/images/{file}', [PublishedPageController::class, 'bundledImage'])
     ->where('file', '[A-Za-z0-9_-]+\.(?:jpe?g|png|gif|webp)');
 
-$workspace = function (int $status = 200) {
+Route::get('/error/{status}', fn (string $status) => abort((int) $status))
+    ->whereIn('status', ['403', '404', '500', '503']);
+
+$workspace = function () {
     $indexPath = public_path('index.html');
     if (file_exists($indexPath)) {
-        return response()->file($indexPath, ['Cache-Control' => 'private, no-store'])->setStatusCode($status);
+        return response()->file($indexPath, ['Cache-Control' => 'private, no-store']);
     }
     abort(404);
 };
 
-$routes = 'login|register|account|demo|showcase|welcome|about|privacy|terms|docs|error/(?:403|404|500|503)|editor/\d+/\d+|(?:inventory|cms|templates|settings)(?:/\d+)?';
+$routes = 'login|register|account|demo|showcase|welcome|about|privacy|terms|docs|editor/\d+/\d+|(?:inventory|cms|templates|settings)(?:/\d+)?';
 Route::get('/{workspacePath}', fn () => $workspace())->where('workspacePath', $routes);
-Route::fallback(function () use ($workspace) {
-    abort_if(request()->is('api/*'), 404);
-
-    return $workspace(404);
-});
+Route::fallback(fn () => abort(404));

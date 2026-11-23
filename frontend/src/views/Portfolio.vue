@@ -63,12 +63,10 @@
         </div>
       </section>
     </main>
-    <SiteFooter />
   </div>
 </template>
 
 <script setup>
-import SiteFooter from '../components/SiteFooter.vue'
 import StudioBrand from '../components/StudioBrand.vue'
 import { onMounted, onUnmounted } from 'vue'
 

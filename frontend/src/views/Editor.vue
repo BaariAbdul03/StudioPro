@@ -27,7 +27,10 @@
             <button v-if="demo" class="studio-button" :disabled="!ready" @click="resetDialog.showModal()">Reset</button>
             <template v-else>
               <button v-if="aiEnabled" class="studio-button" :disabled="!ready || busy" @click="showGenerator = true">Generate a page</button>
-              <RouterLink class="studio-button" :to="{ name: 'templates', params: { projectId }, query: { pageId } }">Templates</RouterLink>
+              <RouterLink class="studio-button editor-template-link" :to="{ name: 'templates', params: { projectId }, query: { pageId } }">
+                <span class="material-symbols-outlined editor-action-icon" aria-hidden="true">grid_view</span>
+                Templates
+              </RouterLink>
               <button class="studio-button" :disabled="!ready || busy" @click="exportDraft">Download static ZIP</button>
               <button class="studio-button primary" :disabled="!ready || busy" @click="publish(true)">
                 {{ store.activePage?.public_url ? 'Republish' : 'Publish' }}
@@ -37,22 +40,30 @@
         </details>
       </div>
     </header>
-    <div class="editor-status" aria-live="polite">
+    <div class="editor-status">
       <div class="studio-actions">
         <button class="studio-button" aria-controls="editor-library" :disabled="preview" :aria-expanded="!store.isLeftSidebarCollapsed && !preview" @click="togglePanel('left')">Layers &amp; blocks</button>
         <button class="studio-button" aria-controls="editor-properties" :disabled="preview" :aria-expanded="!store.isRightSidebarCollapsed && !preview" @click="togglePanel('right')">Properties</button>
         <button class="studio-button" :disabled="!ready || preview || (!isolatedName && !store.selectedComponent)"
           @click="isolatedName ? exitIsolation() : isolateSelection()">{{ isolatedName ? 'Exit isolation' : 'Isolate selection' }}</button>
         <template v-if="!demo && !compactToolbar">
-          <RouterLink :to="{ name: 'templates', params: { projectId }, query: { pageId } }">Templates</RouterLink>
+          <RouterLink class="studio-button" :to="{ name: 'templates', params: { projectId }, query: { pageId } }">
+            <span class="material-symbols-outlined editor-action-icon" aria-hidden="true">grid_view</span>
+            Templates
+          </RouterLink>
           <button class="studio-button" :disabled="!ready || busy" @click="exportDraft">Download static ZIP</button>
         </template>
       </div>
-      <span role="status">{{ store.saveState || notice || (isolatedName ? 'Isolating ' + isolatedName : ready ? (demo ? 'Changes stay in this tab' : store.isUnsaved ? 'Unsaved changes' : 'Draft saved') : 'Loading editor…') }}</span>
-      <div v-if="!demo && store.activePage?.public_url" class="studio-actions">
-        <a :href="store.activePage.public_url" target="_blank" rel="noopener noreferrer">View live page</a>
+      <div v-if="!demo && store.activePage?.public_url" class="studio-actions editor-release">
+        <a class="studio-button editor-live-link" :href="store.activePage.public_url" target="_blank" rel="noopener noreferrer">
+          View live page <span class="material-symbols-outlined editor-action-icon" aria-hidden="true">open_in_new</span>
+        </a>
         <button class="studio-button" @click="copyLink">Copy link</button>
         <button class="studio-button" :disabled="busy" @click="publish(false)">Unpublish</button>
+      </div>
+      <div class="editor-view-status">
+        <span role="status">{{ store.saveState || notice || (isolatedName ? 'Isolating ' + isolatedName : ready ? (demo ? 'Changes stay in this tab' : store.isUnsaved ? 'Unsaved changes' : 'Draft saved') : 'Loading editor…') }}</span>
+        <ThemeToggle />
       </div>
     </div>
     <div class="studio-canvas-layout" @keydown.escape="closePanels">
@@ -80,6 +91,7 @@
 
 <script setup>
 import StudioBrand from '../components/StudioBrand.vue'
+import ThemeToggle from '../components/ThemeToggle.vue'
 import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import grapesjs from 'grapesjs'

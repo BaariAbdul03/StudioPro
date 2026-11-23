@@ -17,10 +17,6 @@
         <button class="studio-button primary" :disabled="busy">{{ busy ? 'Creating account…' : 'Create account' }}</button>
       </form>
       <RouterLink class="studio-signin-link" to="/login">Sign in</RouterLink>
-      <nav class="studio-auth-links" aria-label="Site information">
-        <RouterLink to="/privacy">Privacy policy</RouterLink>
-        <RouterLink to="/terms">Terms &amp; conditions</RouterLink>
-      </nav>
     </div>
   </main>
 </template>

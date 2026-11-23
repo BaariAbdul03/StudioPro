@@ -11,6 +11,7 @@
           <option v-for="project in projects.projects" :key="project.id" :value="project.id">{{ project.name }}</option>
         </select>
         <RouterLink class="studio-button" to="/account">Account</RouterLink>
+        <ThemeToggle />
         <button class="workspace-signout" type="button" :disabled="signingOut" @click="signOut">Sign out</button>
       </div>
     </div>
@@ -20,6 +21,7 @@
 
 <script setup>
 import StudioBrand from '../StudioBrand.vue'
+import ThemeToggle from '../ThemeToggle.vue'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectList } from '../../stores/projects'

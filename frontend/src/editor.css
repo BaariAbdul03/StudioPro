@@ -10,7 +10,7 @@
   border-radius: 6px;
 }
 .editor-library-tabs button > span:last-child { font-size: .72rem; }
-.editor-library-tabs button[aria-pressed="true"] { border: 1px solid var(--studio-line); background: var(--studio-hover); }
+.editor-library-tabs button[aria-pressed="true"] { border: 1px solid var(--studio-input-line); background: var(--studio-selected); color: var(--studio-link); }
 .editor-library-tabs button:hover { background: var(--studio-hover); }
 .editor-panel-content { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 1rem; }
 .editor-panel-content h2 { font-size: 1.06rem; font-weight: 730; }
@@ -62,6 +62,7 @@
   border: 1px solid var(--studio-line); border-radius: 8px; background: var(--studio-panel); box-shadow: 0 12px 26px #161e3230;
 }
 .editor-more-actions > * { width: 100%; }
+.editor-more-actions .editor-template-link { gap: .35rem; }
 .editor-more-actions { max-height: 65dvh; overflow-y: auto; }
 .studio-canvas[data-grid="true"] .gjs-cv-canvas {
   background-image: linear-gradient(var(--studio-grid-line) 1px, transparent 1px),
@@ -103,7 +104,8 @@
   .editor-status { padding: .35rem .65rem; align-items: center; gap: .35rem; }
   .editor-status > .studio-actions { gap: .25rem; }
   .editor-status .studio-button { min-height: 36px; padding-inline: .4rem; font-size: .74rem; }
-  .editor-status > span { margin: 0; font-size: .75rem; }
+  .editor-view-status { justify-content: space-between; flex: 1; gap: .4rem; }
+  .editor-view-status > span { font-size: .75rem; }
   .editor-properties > div:nth-child(2) { min-height: 42px; }
   .editor-properties :is(input[type="text"], textarea, select) { min-height: 35px; }
   .editor-properties :is(input:not([type="checkbox"]), textarea) { font-size: .9rem; }

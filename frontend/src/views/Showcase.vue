@@ -31,7 +31,7 @@ const documentHtml = `<!doctype html>
 </script>
 
 <style scoped>
-.showcase { min-height: 100svh; background: #f3f5fa; color: #171b2c; }
+.showcase { background: var(--studio-bg); color: var(--studio-fg); }
 .showcase-nav {
   display: flex;
   align-items: center;
@@ -45,8 +45,8 @@ const documentHtml = `<!doctype html>
   font-weight: 650;
 }
 .showcase-back span { margin-right: 8px; }
-.showcase-edit { padding: 10px 14px; border-radius: 8px; background: #304dce; color: white; }
-.showcase-nav a:focus-visible { outline: 2px solid #304dce; outline-offset: 4px; }
+.showcase-edit { padding: 10px 14px; border-radius: 8px; background: var(--studio-action); color: white; }
+.showcase-nav a:focus-visible { outline: 2px solid var(--studio-link); outline-offset: 4px; }
 .showcase-content { padding: 0 clamp(8px, 2vw, 28px) 12px; }
 .showcase-content iframe {
   display: block;

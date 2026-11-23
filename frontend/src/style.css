@@ -182,8 +182,11 @@ body {
 .editor-devices button { text-transform: capitalize; }
 .editor-actions { margin-inline-start: auto; justify-content: flex-end; }
 .editor-status { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; min-height: 48px; background: var(--studio-well); border-bottom: 1px solid var(--studio-line); padding: .3rem .85rem; }
-.editor-status > span { font-size: .825rem; color: var(--studio-muted); margin-inline-start: auto; }
-.editor-status a { padding-inline: .35rem; color: var(--studio-link); text-decoration: underline; font-size: .8125rem; }
+.editor-view-status { display: flex; align-items: center; gap: .65rem; margin-inline-start: auto; }
+.editor-view-status > span { font-size: .825rem; color: var(--studio-muted); }
+.editor-action-icon.material-symbols-outlined { font-size: 16px; }
+.editor-status .studio-button { gap: .35rem; }
+.studio-button.editor-live-link { color: var(--studio-link); border-color: var(--studio-input-line); }
 .studio-canvas-layout { display: flex; flex: 1; min-height: 0; position: relative; }
 .studio-canvas { flex: 1; min-width: 0; position: relative; background: var(--studio-grid); }
 .studio-canvas #gjs-container { position: absolute; inset: 0; }
@@ -204,7 +207,6 @@ body {
   .editor-bar { flex-wrap: wrap; gap: .4rem .65rem; }
   .editor-devices { order: 1; width: 100%; }
   .editor-title { display: none; }
-  .editor-status > span { margin-inline-start: 0; }
 }
 
 .workspace-navigation { flex-wrap: wrap; }
@@ -215,14 +217,9 @@ body {
 .studio-guide section p { color: var(--studio-muted); line-height: 1.6; }
 .studio-brand { display: inline-flex; align-items: center; gap: .5rem; }
 .studio-brand img { flex: none; }
-.studio-auth-links { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1rem; font-size: .875rem; }
-.studio-auth-links a, .site-footer nav a { color: var(--studio-link); }
-.studio-auth-links a:hover, .site-footer nav a:hover { text-decoration: underline; }
 .site-information { display: flex; flex-direction: column; }
 .site-information .studio-bar { justify-content: space-between; flex-wrap: wrap; }
 .site-information main { width: min(100%, 960px); margin-block: 0 auto; }
-.site-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; padding-block: 1.4rem; padding-inline: clamp(1rem, 5.4vw, 4.875rem); border-top: 1px solid var(--studio-line); }
-.site-footer nav { display: flex; align-items: center; gap: .5rem 1.25rem; flex-wrap: wrap; font-size: .875rem; }
 .portfolio-faq { padding-block: 2rem 4rem; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.65fr); gap: 1.5rem; scroll-margin-top: 1rem; border-top: 1px solid var(--studio-line); }
 .portfolio-faq h2 { font-size: clamp(1.55rem, 1.1rem + 1.75vw, 2.65rem); font-weight: 730; letter-spacing: -.05em; }
 .portfolio-faq details { border-bottom: 1px solid var(--studio-line); }
@@ -230,10 +227,6 @@ body {
 .portfolio-faq summary::marker { color: var(--studio-link); }
 .portfolio-faq summary:focus-visible { outline: 2px solid var(--studio-link); outline-offset: 2px; }
 .portfolio-faq details p { color: var(--studio-muted); padding: 0 .15rem 1rem; max-width: 58ch; line-height: 1.6; }
-.studio-error-code { margin-top: 1.4rem; color: var(--studio-link); font-weight: 700; }
-.studio-error h1 { margin-block: .35rem .85rem; }
-.studio-error > p:last-of-type { color: var(--studio-muted); }
-.studio-error .studio-actions { margin-top: 1.5rem; }
 .studio-generator { width: min(36rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; }
 .studio-generator form { display: grid; gap: 1rem; margin-top: 1rem; }
 .studio-generator :is(textarea, select) { width: 100%; padding: .55rem .65rem; border: 1px solid var(--studio-input-line); border-radius: .375rem; background: var(--studio-panel); font-weight: 400; }

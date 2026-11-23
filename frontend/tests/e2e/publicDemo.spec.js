@@ -94,8 +94,11 @@ test('public information and FAQ fit a small screen and have reachable error rec
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320)
   }
 
-  await page.goto('/missing-page')
-  await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible()
+  for (const [path, title] of [['/error/403', 'Access denied'], ['/error/500', 'Something went wrong'], ['/error/503', 'Workspace unavailable'], ['/missing-page', 'Page not found']]) {
+    await page.goto(path)
+    await expect(page.getByRole('heading', { name: title })).toBeVisible()
+    await expect(page.getByRole('contentinfo').getByRole('link', { name: 'FAQ' })).toBeVisible()
+  }
   await page.getByRole('link', { name: 'Go home' }).click()
   await expect(page.getByRole('heading', { name: /Build a page/ })).toBeVisible()
 })

@@ -17,7 +17,9 @@ const protectedRoutes = portfolio ? [] : [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   scrollBehavior(to, from, savedPosition) {
-    return savedPosition || (to.hash === '#faq' ? { el: '#faq' } : { top: 0 })
+    if (savedPosition) return savedPosition
+    const section = to.hash && document.getElementById(to.hash.slice(1))
+    return section ? { el: section } : { top: 0 }
   },
   routes: [
     { path: '/demo', name: 'demo', component: () => import('../views/Editor.vue'), props: { demo: true } },
