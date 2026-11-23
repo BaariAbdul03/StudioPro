@@ -2,6 +2,8 @@
 
 [Northflank Sandbox](https://northflank.com/pricing) provides two always-on services and two jobs on its free plan. One Docker service runs Vue, Laravel, authenticated APIs, exports, and published pages. Neon provides Postgres and object storage.
 
+Northflank blocked CLI sign-in for this team pending payment-card verification. Its pricing page advertises card-free Sandbox access, while its [billing documentation](https://northflank.com/docs/v1/application/billing/pricing-on-northflank) says a payment method is required to create resources.
+
 ## Workspace service
 
 1. Push the reviewed branch to GitHub. Create a [combined service](https://northflank.com/docs/v1/application/getting-started/build-and-deploy-your-code) from that branch. Set the Dockerfile to `backend/Dockerfile` and use the repository root as the build context.
