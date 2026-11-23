@@ -13,7 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->prepend(\App\Http\Middleware\AllowLocalSpaCors::class);
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('api/*') ? null : '/login');
         $middleware->append(\App\Http\Middleware\SecurityHeadersMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -25,5 +25,18 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('api/*') || $request->expectsJson()) {
                 return response()->json(['message' => 'Unauthenticated.'], 401);
             }
+        });
+        $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response) {
+            $request = request();
+            if ($request->is('api/*') && $response->getStatusCode() === 419
+                && $request->route()?->gatherMiddleware()
+                && in_array('auth:web', $request->route()->gatherMiddleware(), true)
+                && ! $request->user()) {
+                $response = response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+            if (app()->environment('production') && $request->is('api/*') && $response->getStatusCode() >= 500) {
+                $response = response()->json(['error' => 'Something went wrong'], $response->getStatusCode());
+            }
+            return \App\Http\Middleware\SecurityHeadersMiddleware::apply($response);
         });
     })->create();

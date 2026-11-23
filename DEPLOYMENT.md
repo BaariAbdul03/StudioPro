@@ -1,88 +1,40 @@
-# StudioPro Production Deployment Plan
+# Deploy the full workspace on Northflank
 
-This guide outlines two strategies for deploying the StudioPro Page Builder:
-* **Option A (Recommended for Free Tier):** 100% Free Single-Service Deployment on Render. Frontend and backend are built together in a single container.
-* **Option B (Recommended for Production):** Split-service deployment using Vercel (Frontend) and a cheap VPS + Coolify (Backend) to prevent container sleeping.
+[Northflank Sandbox](https://northflank.com/pricing) provides two always-on services and two jobs on its free plan. One Docker service runs Vue, Laravel, authenticated APIs, exports, and published pages. Neon provides Postgres and object storage.
 
----
+## Workspace service
 
-## 📦 Step 0: Push Project to GitHub
-Initialize your Git repository and push your changes to GitHub first:
-```bash
-git init
-git add .
-git commit -m "feat: initial commit with single service docker build"
-git remote add origin https://github.com/BaariAbdul03/StudioPro.git
-git branch -M main
-git push -u origin main
+1. Push the reviewed branch to GitHub. Create a [combined service](https://northflank.com/docs/v1/application/getting-started/build-and-deploy-your-code) from that branch. Set the Dockerfile to `backend/Dockerfile` and use the repository root as the build context.
+2. Add public HTTP port `80` and use the generated HTTPS hostname. In runtime variables, set `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL` to that HTTPS origin, `DB_CONNECTION=pgsql`, `SESSION_DRIVER=database`, `SESSION_SECURE_COOKIE=true`, and `CACHE_STORE=database`. Supply a stable `APP_KEY`. Leave `STUDIO_PUBLIC_URL` unset to serve share links on the same origin.
+3. Set the pooled Neon URL as `DATABASE_URL`. Set `NEON_STORAGE_ENDPOINT`, `NEON_STORAGE_ACCESS_KEY_ID`, `NEON_STORAGE_SECRET_ACCESS_KEY`, and `NEON_STORAGE_REGION` in runtime secrets. The image defaults to the `studio-media` and `studio-published` Neon buckets.
+4. Configure `GET /up` as the recurring health check so an idle Neon compute can suspend. Run `sh /usr/local/bin/studio-migrate` as a one-off job with `DATABASE_URL_UNPOOLED` if the branch needs migrations. Run `php artisan studio:provision owner@example.test` in the service shell and enter the owner password interactively.
+5. Open `/welcome` for the portfolio, `/demo` for the browser demo, and `/login` for the private workspace. Verify `/api/health` once. Sign in, apply a template, download a ZIP, upload an image, publish, and verify the share link while signed out. Unpublish and verify that it returns HTTP 404.
+
+One service covers the editor, templates, CMS, inventory, version history, uploads, publishing, and export. Checkout remains a local simulation. Live payments need a production integration.
+
+## Optional AI
+
+Set `STUDIO_AI_ENABLED=true` and `GEMINI_API_KEY` on the workspace service for page generation, copy rewrite, and SEO suggestions.
+
+For Stitch, set `STUDIO_STITCH_ENABLED=true`, `STITCH_PROJECT_ID=1798865299197471638`, and `STITCH_API_KEY` with a rotated key in runtime secrets. Laravel starts a [background process](https://laravel.com/docs/13.x/queues#deferred-dispatching) for each generation request. This lets the Neon compute suspend between uses.
+
+Stitch creates screens in the configured project. The editor imports HTML and inline styles when Google makes the download available and links back to the Stitch project in either case. Import strips scripts and external stylesheets, so designs that depend on those may need styling adjustments.
+
+## Existing Cloudflare portfolio
+
+[Cloudflare Pages](https://studiopro-pagebuilder.pages.dev/) serves the public portfolio and existing share links. Keep it running during the full workspace migration.
+
+```sh
+npm ci --prefix frontend
+npm run build:portfolio
+cd frontend
+npx --yes wrangler@4.166.0 pages deploy ./dist --project-name studiopro-pagebuilder --branch main
 ```
 
----
+Run the deploy command from `frontend` so Wrangler includes the Pages Function. The Wrangler configuration points that Function to the public Neon bucket. Set `STUDIO_PORTFOLIO_URL` to the deployed origin to run the public browser suite against it.
 
-## 🆓 Option A: 100% Free Single-Service Deployment (Render)
+## Prepare Neon
 
-This strategy compiles the Vue/Vite frontend and embeds it inside the Laravel directory. FrankenPHP serves both the static frontend assets and Laravel API endpoints inside a single container on Render's free plan.
+`neon.ts` declares `studio-media` as private and `studio-published` as public read. Apply changes with `neon config plan` and `neon deploy` from the linked Neon workspace. Use [Neon's object storage setup](https://neon.com/docs/storage/quickstart) to obtain branch credentials.
 
-### Benefits
-* **Cost:** $0/month. No paid accounts needed.
-* **No CORS Complexities:** Frontend and backend run on the exact same domain.
-* **Unified Sleep Cycle:** When the container sleeps, the first request wakes up both the frontend and API simultaneously (avoiding broken UI states).
-
-### Steps
-
-1. **Create a Web Service on Render:**
-   * Go to [Render Dashboard](https://dashboard.render.com/) and click **New** -> **Web Service**.
-   * Link your GitHub repository.
-   * **Language:** `Docker`
-   * **Dockerfile Path:** `backend/Dockerfile`
-   * **Build Context:** `.` (Ensure the build context is set to the repository root so the Dockerfile can access both `frontend/` and `backend/` directories).
-
-2. **Configure Environment Variables:**
-   Under the **Environment** tab in Render, add the following variables:
-   ```dotenv
-   APP_NAME="StudioPro"
-   APP_ENV=production
-   APP_DEBUG=false
-   APP_KEY=base64:z1mbawrkjfMNY+dWld9SGBSL2E2LZ/QMuebk8mCUP50= # Generate with: php artisan key:generate
-   APP_URL=https://your-render-subdomain.onrender.com
-
-   # Supabase Connection
-   DB_CONNECTION=pgsql
-   DB_HOST=aws-1-ap-southeast-1.pooler.supabase.com
-   DB_PORT=6543
-   DB_DATABASE=postgres
-   DB_USERNAME=postgres.dvtzpeasiunzerlfnkan
-   DB_PASSWORD=your_supabase_password
-
-   # Stateless Sessions
-   SESSION_DRIVER=cookie
-   ```
-
-3. **Deploy:**
-   Click **Create Web Service**. Render will run the multi-stage build, compile the Vue frontend, configure FrankenPHP, run migrations, and serve the application at `https://your-render-subdomain.onrender.com`.
-
----
-
-## ⚡ Option B: High-Performance Deployment (Vercel + VPS/Coolify)
-
-Use this option to keep the backend permanently awake (no 50-second cold starts) on a cheap VPS ($4-$5/month on Hetzner or DigitalOcean) managed via Coolify.
-
-### 🎨 Part 1: Frontend (Vercel / Netlify)
-Deploy static files to edge CDNs.
-1. Connect your repository to Vercel/Netlify.
-2. Set **Root Directory** to `frontend`.
-3. **Build Command:** `npm run build`, **Output Directory:** `dist`.
-4. Set env variable: `VITE_API_BASE_URL=https://api.yourdomain.com/api`
-5. Deploy. (SPA routing fallback is pre-configured via `vercel.json` and `_redirects`).
-
-### ⚙️ Part 2: Backend (VPS + Coolify)
-1. Buy a VPS ($4/month CX22 on Hetzner Cloud).
-2. Install Coolify via SSH:
-   ```bash
-   curl -fsSL https://coolify.io/install.sh | bash
-   ```
-3. Open Coolify web portal -> click **New Resource** -> **Application** -> link your repository.
-4. Set **Build Context** to `.` and **Dockerfile Path** to `backend/Dockerfile`.
-5. In **Environment Variables**, configure `APP_KEY`, `APP_ENV=production`, `APP_DEBUG=false`, and your Supabase PostgreSQL credentials.
-6. Under Settings, set the domain (e.g. `api.yourdomain.com`). Coolify will configure reverse proxy and SSL automatically.
-7. Deploy.
+Laravel reads `DATABASE_URL` for pooled traffic and `DATABASE_URL_UNPOOLED` for migrations. Existing `DB_URL` and `DB_DIRECT_URL` overrides take priority. Use a restricted Postgres role for runtime traffic and a migration role for schema changes.

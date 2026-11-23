@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen w-full flex flex-col bg-surface text-on-surface overflow-hidden select-none font-geist mesh-bg relative" @click="activeMenuId = null">
+  <div class="studio-light studio-management min-h-dvh md:h-dvh w-full flex flex-col bg-surface text-on-surface overflow-x-clip md:overflow-hidden font-geist mesh-bg relative" @click="activeMenuId = null">
     <TopBar />
 
     <main class="flex-1 overflow-y-auto custom-scrollbar bg-surface relative">
@@ -78,11 +78,11 @@
 
         <!-- Search & Filters (Glassmorphic) -->
         <div class="bg-[#1f2937]/40 backdrop-blur-[12px] border border-[#334155]/50 p-3 rounded-2xl flex flex-wrap items-center gap-3">
-          <div class="flex-1 min-w-[300px] relative">
+          <div class="flex-1 basis-full md:basis-auto min-w-0 relative">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
             <input v-model="searchQuery" class="w-full bg-editor-bg border border-outline rounded-xl pl-12 pr-3 py-3 text-[14px] focus:border-primary focus:ring-1 focus:ring-[#2E62FF] transition-all outline-none" placeholder="Search inventory, SKUs, or categories..." type="text"/>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2 min-w-0">
             <div class="relative group">
               <select v-model="selectedStatus" class="appearance-none bg-[#222a3d] border border-outline px-3 py-3 rounded-xl text-[12px] font-medium flex items-center gap-2 hover:border-[#8d90a2] transition-colors pr-8 outline-none cursor-pointer">
                 <option value="all">Status: All Assets</option>
@@ -117,7 +117,7 @@
 
         <!-- Data Table (Premium Density) -->
         <div class="bg-surface-container rounded-2xl border border-outline overflow-hidden shadow-2xl flex flex-col flex-1 min-h-[400px]">
-          <div class="flex-1 overflow-auto custom-scrollbar">
+          <div class="flex-1 overflow-auto studio-table" role="region" tabindex="0" aria-label="Inventory items">
             <table class="w-full text-left border-collapse">
               <thead class="bg-surface-container-light border-b border-outline">
                 <tr>
@@ -221,7 +221,7 @@
 
     <!-- Add/Edit Product Modal Dialog -->
     <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div class="w-[500px] bg-surface-container border border-white/10 p-6 rounded-2xl shadow-2xl relative flex flex-col gap-4 font-geist">
+      <div class="w-[500px] max-w-[calc(100%-1.5rem)] bg-surface-container border border-white/10 p-6 rounded-2xl shadow-2xl relative flex flex-col gap-4 font-geist">
         <div class="flex justify-between items-center pb-2 border-b border-white/10">
           <h3 class="text-sm font-bold text-white uppercase tracking-wider">{{ isEditing ? 'Edit Product' : 'Add Product' }}</h3>
           <button @click="isModalOpen = false" class="text-on-surface-variant hover:text-white cursor-pointer">
@@ -229,7 +229,7 @@
           </button>
         </div>
         
-        <div class="space-y-4 overflow-y-auto max-h-[calc(100vh-180px)] pr-1 custom-scrollbar">
+        <div class="space-y-4 overflow-y-auto max-h-[calc(100dvh-180px)] pr-1 custom-scrollbar">
           <div class="flex flex-col gap-1.5">
             <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Product Name *</label>
             <input v-model="currentProduct.title" type="text" class="bg-editor-bg border border-white/10 rounded-xl py-2 px-3 text-xs text-white focus:border-primary focus:ring-1 focus:ring-[#2E62FF] outline-none" placeholder="e.g. Ergonomic Chair" />
@@ -291,7 +291,7 @@
 
     <!-- Confirm Modal -->
     <div v-if="confirmState.open" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div class="w-[380px] bg-surface-container border border-white/10 rounded-2xl shadow-2xl p-5 space-y-4">
+      <div class="w-[380px] max-w-[calc(100%-1.5rem)] bg-surface-container border border-white/10 rounded-2xl shadow-2xl p-5 space-y-4">
         <div class="flex items-center gap-2.5 text-[#EF4444] mb-3">
           <span class="material-symbols-outlined">warning</span>
           <h3 class="text-sm font-bold text-white tracking-tight">{{ confirmState.title }}</h3>
@@ -306,7 +306,7 @@
 
     <!-- Help Modal -->
     <div v-if="showHelp || showFeedback" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div class="w-[420px] bg-surface-container border border-white/10 rounded-2xl shadow-2xl p-5 space-y-3">
+      <div class="w-[420px] max-w-[calc(100%-1.5rem)] bg-surface-container border border-white/10 rounded-2xl shadow-2xl p-5 space-y-3">
         <h3 class="text-white text-sm font-bold tracking-tight">{{ showHelp ? 'Inventory Help' : 'Send Feedback' }}</h3>
         <p v-if="showHelp" class="text-xs text-on-surface-variant leading-relaxed">Use explicit stock status for merchandising. Quantity powers operations; status powers storefront messaging.</p>
         <textarea v-else v-model="feedbackText" class="w-full h-28 bg-editor-bg border border-white/10 rounded-xl text-xs text-white p-3 outline-none focus:border-primary resize-none" placeholder="What should improve?"></textarea>
@@ -326,6 +326,8 @@
 </template>
 
 <script setup>
+import { apiFetch } from '../api'
+
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import TopBar from '../components/editor/TopBar.vue'
@@ -392,7 +394,7 @@ const showToast = (msg) => {
 const loadProducts = async () => {
   loading.value = true
   try {
-    const res = await fetch(`${store.apiBaseUrl}/projects/${projectId}/products`)
+    const res = await apiFetch(`${store.apiBaseUrl}/projects/${projectId}/products`)
     if (res.ok) {
       products.value = await res.json()
     }
@@ -557,13 +559,13 @@ const saveProduct = async () => {
   try {
     let res
     if (isEditing.value) {
-      res = await fetch(`${store.apiBaseUrl}/projects/${projectId}/products/${currentProduct.value.id}`, {
+      res = await apiFetch(`${store.apiBaseUrl}/projects/${projectId}/products/${currentProduct.value.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(currentProduct.value)
       })
     } else {
-      res = await fetch(`${store.apiBaseUrl}/projects/${projectId}/products`, {
+      res = await apiFetch(`${store.apiBaseUrl}/projects/${projectId}/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(currentProduct.value)
@@ -591,7 +593,7 @@ const deleteProduct = async (id) => {
     message: 'Delete this product from inventory and commerce blocks?',
     action: async () => {
       try {
-        const res = await fetch(`${store.apiBaseUrl}/projects/${projectId}/products/${id}`, {
+        const res = await apiFetch(`${store.apiBaseUrl}/projects/${projectId}/products/${id}`, {
           method: 'DELETE'
         })
         if (res.ok) {
@@ -636,7 +638,7 @@ const attachProductImage = async (event) => {
   const formData = new FormData()
   formData.append('file', file)
   try {
-    const response = await fetch(`${store.apiBaseUrl}/projects/${projectId}/assets`, {
+    const response = await apiFetch(`${store.apiBaseUrl}/projects/${projectId}/assets`, {
       method: 'POST',
       body: formData
     })

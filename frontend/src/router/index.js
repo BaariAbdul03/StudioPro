@@ -1,83 +1,66 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import Dashboard from '../views/Dashboard.vue'
-import Editor from '../views/Editor.vue'
-import InventoryManager from '../views/InventoryManager.vue'
-import CmsManager from '../views/CmsManager.vue'
-import TemplateLibrary from '../views/TemplateLibrary.vue'
-import Settings from '../views/Settings.vue'
-import Documentation from '../views/Documentation.vue'
-import Login from '../views/Login.vue'
-import Register from '../views/Register.vue'
+﻿import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+
+const portfolio = import.meta.env.MODE === 'portfolio' || import.meta.env.VITE_PUBLIC_DEMO === 'true'
+const protectedRoutes = portfolio ? [] : [
+  { path: '/', name: 'dashboard', component: () => import('../views/Dashboard.vue') },
+  { path: '/editor/:projectId/:pageId', name: 'editor', component: () => import('../views/Editor.vue') },
+  { path: '/inventory/:projectId', name: 'inventory', component: () => import('../views/InventoryManager.vue') },
+  { path: '/cms/:projectId', name: 'cms', component: () => import('../views/CmsManager.vue') },
+  { path: '/templates/:projectId', name: 'templates', component: () => import('../views/TemplateLibrary.vue') },
+  { path: '/settings/:projectId', name: 'settings', component: () => import('../views/Settings.vue') },
+  { path: '/docs', name: 'docs', component: () => import('../views/Documentation.vue') }
+].map(route => ({ ...route, meta: { requiresAuth: true } }))
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior(to, from, savedPosition) {
+    return savedPosition || (to.hash === '#faq' ? { el: '#faq' } : { top: 0 })
+  },
   routes: [
+    { path: '/demo', name: 'demo', component: () => import('../views/Editor.vue'), props: { demo: true } },
+    { path: '/showcase', name: 'showcase', component: () => import('../views/Showcase.vue') },
+    { path: '/welcome', name: 'welcome', component: () => import('../views/Portfolio.vue') },
+    ...['about', 'privacy', 'terms'].map(kind => ({
+      path: '/' + kind,
+      name: kind,
+      component: () => import('../views/SiteInformation.vue'),
+      props: { kind }
+    })),
     {
-      path: '/login',
-      name: 'login',
-      component: Login,
-      meta: { guest: true }
+      path: '/error/:status(403|404|500|503)',
+      name: 'error',
+      component: () => import('../views/ErrorPage.vue'),
+      props: true
     },
-    {
-      path: '/register',
-      name: 'register',
-      component: Register,
-      meta: { guest: true }
-    },
-    {
-      path: '/',
-      name: 'dashboard',
-      component: Dashboard,
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/editor/:projectId/:pageId',
-      name: 'editor',
-      component: Editor,
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/inventory/:projectId',
-      name: 'inventory',
-      component: InventoryManager,
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/cms/:projectId',
-      name: 'cms',
-      component: CmsManager,
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/templates/:projectId',
-      name: 'templates',
-      component: TemplateLibrary,
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/settings/:projectId',
-      name: 'settings',
-      component: Settings,
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/docs',
-      name: 'docs',
-      component: Documentation,
-      meta: { requiresAuth: true }
-    }
+    ...(portfolio
+      ? [{ path: '/', name: 'portfolio', component: () => import('../views/Portfolio.vue') }]
+      : [
+          { path: '/login', name: 'login', component: () => import('../views/Login.vue') },
+          ...(import.meta.env.DEV
+            ? [{ path: '/register', name: 'register', component: () => import('../views/Register.vue') }]
+            : []),
+          ...protectedRoutes
+        ]),
+    { path: '/:pathMatch(.*)*', component: () => import('../views/ErrorPage.vue'), props: { status: '404' } }
   ]
 })
 
-router.beforeEach((to, from) => {
-  const token = localStorage.getItem('studiopro_token')
-  const isAuthenticated = !!token
-
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    return '/login'
-  } else if (to.meta.guest && isAuthenticated) {
-    return '/'
+router.beforeEach(async to => {
+  if (!to.meta.requiresAuth) return
+  const auth = useAuthStore()
+  if (auth.user) return
+  try {
+    if (await auth.session()) return
+  } catch {
+    return { name: 'error', params: { status: '503' }, query: { from: to.fullPath } }
   }
+  return { name: 'login' }
+})
+
+router.afterEach(to => {
+  const titles = { about: 'About us', privacy: 'Privacy policy', terms: 'Terms & conditions', error: 'Error' }
+  document.title = titles[to.name] ? titles[to.name] + ' — StudioPro' : 'StudioPro'
 })
 
 export default router

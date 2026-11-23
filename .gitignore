@@ -8,3 +8,6 @@ frontend/node_modules/
 backend/vendor/
 backend/storage/logs/*.log
 Supabase-pass.txt
+.neon
+node_modules/
+frontend/.wrangler/

@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen bg-editor-bg text-white">
-    <router-view></router-view>
+  <div class="studio-app">
+    <router-view :key="$route.path" />
   </div>
 </template>
 

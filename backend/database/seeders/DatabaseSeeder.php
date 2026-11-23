@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,11 +14,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed a default test user
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password' => \Illuminate\Support\Facades\Hash::make('password'),
-        ]);
+        // Provision the workspace owner with the studio:provision command.
     }
 }

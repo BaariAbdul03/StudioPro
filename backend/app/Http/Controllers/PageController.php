@@ -4,16 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Page;
 use App\Models\Project;
+use App\Services\PageRelease;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class PageController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Project $project)
     {
         abort_unless($project->user_id === auth()->id(), 403);
+
         return response()->json($project->pages);
     }
 
@@ -22,163 +23,75 @@ class PageController extends Controller
         abort_unless($project->user_id === auth()->id(), 403);
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'slug' => 'required|string',
-            'html' => 'nullable|string',
-            'css' => 'nullable|string',
-            'components' => 'nullable|array',
-            'styles' => 'nullable|array',
-            'meta' => 'nullable|array',
-        ]);
+            'slug' => ['required', 'string', 'max:100', 'alpha_dash:ascii', $this->uniqueSlug($project)],
+        ] + Page::draftRules());
 
-        $page = $project->pages()->create($validated);
-        return response()->json($page, 201);
+        return response()->json($project->pages()->create($this->withLegacyFallback($validated)), 201);
     }
 
     public function show(Project $project, Page $page)
     {
-        abort_unless($project->user_id === auth()->id(), 403);
-        abort_unless($page->project_id === $project->id, 404);
+        $this->authorizePage($project, $page);
 
         return response()->json($page);
     }
 
     public function update(Request $request, Project $project, Page $page)
     {
-        abort_unless($project->user_id === auth()->id(), 403);
-        abort_unless($page->project_id === $project->id, 404);
-
+        $this->authorizePage($project, $page);
         $validated = $request->validate([
             'title' => 'sometimes|required|string|max:255',
-            'slug' => 'sometimes|required|string',
-            'html' => 'nullable|string',
-            'css' => 'nullable|string',
-            'components' => 'nullable|array',
-            'styles' => 'nullable|array',
-            'meta' => 'nullable|array',
-            'is_published' => 'sometimes|required|boolean',
-        ]);
+            'slug' => ['sometimes', 'required', 'string', 'max:100', 'alpha_dash:ascii', $this->uniqueSlug($project)->ignore($page)],
+        ] + Page::draftRules());
 
-        $page->update($validated);
+        $page->update($this->withLegacyFallback($validated));
 
-        if ($page->is_published && !empty($project->settings['deploy_webhook'])) {
-            $webhook = $project->settings['deploy_webhook'];
-            if ($this->isSafeUrl($webhook)) {
-                try {
-                    \Illuminate\Support\Facades\Http::timeout(5)->post($webhook, [
-                        'event' => 'page.published',
-                        'project_id' => $project->id,
-                        'project_name' => $project->name,
-                        'page_id' => $page->id,
-                        'page_title' => $page->title,
-                        'page_slug' => $page->slug,
-                        'published_url' => url('/api/projects/' . $project->id . '/pages/' . $page->id),
-                        'timestamp' => now()->toIso8601String(),
-                    ]);
-                } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::warning('Deployment webhook failed: ' . $e->getMessage());
-                }
-            } else {
-                \Illuminate\Support\Facades\Log::warning('Deployment webhook blocked (SSRF prevention): ' . $webhook);
-            }
-        }
-
-        return response()->json($page);
+        return response()->json($page->fresh());
     }
 
-    public function destroy(Project $project, Page $page)
+    public function publish(Project $project, Page $page, PageRelease $releases)
+    {
+        $this->authorizePage($project, $page);
+
+        return response()->json($releases->publish($page));
+    }
+
+    public function unpublish(Project $project, Page $page, PageRelease $releases)
+    {
+        $this->authorizePage($project, $page);
+
+        return response()->json($releases->remove($page));
+    }
+
+    public function destroy(Project $project, Page $page, PageRelease $releases)
+    {
+        $this->authorizePage($project, $page);
+
+        DB::transaction(function () use ($page, $releases) {
+            $releases->remove($page)->delete();
+        });
+
+        return response()->noContent();
+    }
+
+    private function authorizePage(Project $project, Page $page): void
     {
         abort_unless($project->user_id === auth()->id(), 403);
         abort_unless($page->project_id === $project->id, 404);
-
-        $page->delete();
-        return response()->json(null, 204);
     }
 
-    private function isSafeUrl(string $url): bool
+    private function uniqueSlug(Project $project)
     {
-        $parsed = parse_url($url);
-        if (!$parsed || !isset($parsed['scheme']) || !isset($parsed['host'])) {
-            return false;
-        }
-
-        $scheme = strtolower($parsed['scheme']);
-        if ($scheme !== 'http' && $scheme !== 'https') {
-            return false;
-        }
-
-        $host = $parsed['host'];
-        $ips = [];
-
-        if (filter_var($host, FILTER_VALIDATE_IP)) {
-            $ips[] = $host;
-        } else {
-            $records = @dns_get_record($host, DNS_A | DNS_AAAA);
-            if ($records) {
-                foreach ($records as $record) {
-                    if (isset($record['ip'])) {
-                        $ips[] = $record['ip'];
-                    }
-                    if (isset($record['ipv6'])) {
-                        $ips[] = $record['ipv6'];
-                    }
-                }
-            }
-        }
-
-        if (empty($ips)) {
-            return false;
-        }
-
-        foreach ($ips as $ip) {
-            if ($this->isPrivateIp($ip)) {
-                return false;
-            }
-        }
-
-        return true;
+        return Rule::unique('pages')->where('project_id', $project->id);
     }
 
-    private function isPrivateIp(string $ip): bool
+    private function withLegacyFallback(array $draft): array
     {
-        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
-            if ($ip === '::1') {
-                return true;
-            }
-            $bin = inet_pton($ip);
-            if ($bin === false) {
-                return true;
-            }
-            $firstByte = ord($bin[0]);
-            if (($firstByte & 0xfe) === 0xfc) {
-                return true;
-            }
-            if ($firstByte === 0xfe && (ord($bin[1]) & 0xc0) === 0x80) {
-                return true;
-            }
-            return false;
+        // A legacy template or caller can replace the rendered draft without sending project JSON.
+        if (! array_key_exists('project_data', $draft) && array_key_exists('html', $draft)) {
+            $draft['project_data'] = null;
         }
 
-        $long = ip2long($ip);
-        if ($long === false) {
-            return true;
-        }
-
-        $privateRanges = [
-            ['127.0.0.0', '127.255.255.255'],
-            ['10.0.0.0', '10.255.255.255'],
-            ['172.16.0.0', '172.31.255.255'],
-            ['192.168.0.0', '192.168.255.255'],
-            ['169.254.0.0', '169.254.255.255'],
-        ];
-
-        foreach ($privateRanges as $range) {
-            $start = ip2long($range[0]);
-            $end = ip2long($range[1]);
-            if ($long >= $start && $long <= $end) {
-                return true;
-            }
-        }
-
-        return false;
+        return $draft;
     }
 }

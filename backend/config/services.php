@@ -24,8 +24,8 @@ return [
 
     'gemini' => [
         'key' => env('GEMINI_API_KEY'),
-        'pro_model' => env('GEMINI_PRO_MODEL', 'gemini-3.5-flash'),
-        'flash_model' => env('GEMINI_FLASH_MODEL', 'gemini-3.5-flash'),
+        'pro_model' => env('GEMINI_PRO_MODEL', 'gemini-3.5-flash-lite'),
+        'flash_model' => env('GEMINI_FLASH_MODEL', 'gemini-3.5-flash-lite'),
     ],
 
     'stitch' => [

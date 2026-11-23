@@ -1,5 +1,23 @@
 <?php
 
+$storageEndpoint = env('NEON_STORAGE_ENDPOINT');
+$publishedBucket = env('NEON_PUBLISHED_BUCKET', 'studio-published');
+$defaultDiskDriver = env('APP_ENV', 'production') === 'production' ? 'neon' : 'local';
+$mediaDriver = env('MEDIA_DISK_DRIVER', $defaultDiskDriver);
+$publishedDriver = env('PUBLISHED_DISK_DRIVER', $defaultDiskDriver);
+$storage = [
+    'key' => env('NEON_STORAGE_ACCESS_KEY_ID'),
+    'secret' => env('NEON_STORAGE_SECRET_ACCESS_KEY'),
+    'region' => env('NEON_STORAGE_REGION', 'eu-central-1'),
+    'endpoint' => $storageEndpoint,
+    'use_path_style_endpoint' => true,
+    'visibility' => 'private',
+    'throw' => true,
+    'http' => ['connect_timeout' => 5, 'timeout' => 15],
+    'request_checksum_calculation' => 'when_required',
+    'response_checksum_validation' => 'when_required',
+];
+
 return [
 
     /*
@@ -29,6 +47,23 @@ return [
     */
 
     'disks' => [
+
+        'media' => [
+            ...$storage,
+            'driver' => $mediaDriver,
+            'root' => $mediaDriver === 'local' ? storage_path('app/private/media') : '',
+            'bucket' => env('NEON_MEDIA_BUCKET', 'studio-media'),
+        ],
+
+        'published' => [
+            ...$storage,
+            'driver' => $publishedDriver,
+            'root' => $publishedDriver === 'local' ? env('PUBLISHED_LOCAL_ROOT', storage_path('app/private/published')) : '',
+            'bucket' => $publishedBucket,
+            'url' => $publishedDriver === 'neon'
+                ? env('PUBLISHED_BUCKET_URL') ?: rtrim((string) $storageEndpoint, '/').'/'.$publishedBucket
+                : '/studio-published',
+        ],
 
         'local' => [
             'driver' => 'local',

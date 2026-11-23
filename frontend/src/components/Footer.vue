@@ -2,12 +2,11 @@
   <footer class="w-full bg-editor-bg border-t border-white/5 text-gray-500 py-6 px-8 mt-auto font-geist">
     <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-primary text-[20px]">code_blocks</span>
-        <span class="font-bold text-white tracking-tight">StudioPro</span>
+        <StudioBrand />
         <span class="text-[11px] font-mono bg-white/5 px-2 py-0.5 rounded text-on-surface-variant">v2.0.0</span>
       </div>
       
-      <div class="flex items-center gap-6 text-[11px] font-bold uppercase tracking-wider">
+      <div class="flex flex-wrap justify-center items-center gap-3 sm:gap-6 text-[11px] font-bold uppercase tracking-wider">
         <router-link to="/docs" target="_blank" class="hover:text-white transition-colors flex items-center gap-1.5">
           <span class="material-symbols-outlined text-[14px]">menu_book</span> Documentation
         </router-link>
@@ -37,6 +36,7 @@
 </template>
 
 <script setup>
+import StudioBrand from './StudioBrand.vue'
 import { ref } from 'vue'
 
 const showFeedback = ref(false)

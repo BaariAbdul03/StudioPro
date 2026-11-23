@@ -3,6 +3,39 @@
 use Illuminate\Support\Str;
 use Pdo\Mysql;
 
+$postgresUrl = static function (?string $url): array {
+    $host = $url ? (string) parse_url($url, PHP_URL_HOST) : '';
+    if (! str_ends_with($host, '.neon.tech')) {
+        return ['url' => $url, 'port' => env('DB_PORT', '5432'), 'options' => []];
+    }
+
+    $verified = preg_replace('/([?&])sslmode=[^&]*/', '${1}sslmode=verify-full', $url, 1, $replaced);
+
+    return [
+        'url' => $replaced ? $verified : $url.(str_contains($url, '?') ? '&' : '?').'sslmode=verify-full',
+        'port' => '5432',
+        // Keep native parameter binding and avoid named statements on PgBouncer.
+        'options' => str_contains($host, '-pooler.') && extension_loaded('pdo_pgsql')
+            ? [\Pdo\Pgsql::ATTR_DISABLE_PREPARES => true]
+            : [],
+    ];
+};
+$rootCertificate = env('DB_SSLROOTCERT') ?: (ini_get('openssl.cafile') ?: ini_get('curl.cainfo'));
+
+$postgres = [
+    'driver' => 'pgsql',
+    ...$postgresUrl(env('DB_URL') ?: env('DATABASE_URL')),
+    'host' => env('DB_HOST', '127.0.0.1'),
+    'database' => env('DB_DATABASE', 'laravel'),
+    'username' => env('DB_USERNAME', 'postgres'),
+    'password' => env('DB_PASSWORD', ''),
+    'charset' => 'utf8',
+    'prefix' => '',
+    'prefix_indexes' => true,
+    'sslmode' => env('DB_SSLMODE', env('APP_ENV', 'production') === 'production' ? 'verify-full' : 'prefer'),
+    'sslrootcert' => $rootCertificate ? str_replace('\\', '/', $rootCertificate) : null,
+];
+
 return [
 
     /*
@@ -17,7 +50,7 @@ return [
     |
     */
 
-    'default' => (env('DB_CONNECTION') === 'pgsql' && !extension_loaded('pdo_pgsql')) ? 'sqlite' : env('DB_CONNECTION', 'sqlite'),
+    'default' => env('DB_CONNECTION', env('DATABASE_URL') || env('APP_ENV', 'production') === 'production' ? 'pgsql' : 'sqlite'),
 
     /*
     |--------------------------------------------------------------------------
@@ -35,7 +68,7 @@ return [
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),
-            'database' => (env('DB_CONNECTION') === 'sqlite') ? env('DB_DATABASE', database_path('database.sqlite')) : database_path('database.sqlite'),
+            'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
             'busy_timeout' => null,
@@ -84,19 +117,11 @@ return [
             ]) : [],
         ],
 
-        'pgsql' => [
-            'driver' => 'pgsql',
-            'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '6543'),
-            'database' => env('DB_DATABASE', 'laravel'),
-            'username' => env('DB_USERNAME', 'root'),
-            'password' => env('DB_PASSWORD', ''),
-            'charset' => env('DB_CHARSET', 'utf8'),
-            'prefix' => '',
-            'prefix_indexes' => true,
-            'search_path' => 'public',
-            'sslmode' => env('DB_SSLMODE', 'prefer'),
+        'pgsql' => $postgres,
+
+        'pgsql_direct' => [
+            ...$postgres,
+            ...$postgresUrl(env('DB_DIRECT_URL') ?: env('DATABASE_URL_UNPOOLED')),
         ],
 
         'sqlsrv' => [

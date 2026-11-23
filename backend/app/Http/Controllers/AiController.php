@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class AiController extends Controller
@@ -24,95 +25,17 @@ class AiController extends Controller
         $prompt = trim($validated['prompt']);
         $style = trim($validated['style'] ?? 'Minimal');
 
-        $styleInstructions = [
-            'Minimal' => 'Minimal style: Clean layout, generous white space, simple typography, subtle accents, ultra-clean design.',
-            'Brutalist' => 'Brutalist style: Raw typography, high-contrast borders, bold colors, blocky shapes, structural grids, unpolished industrial layout.',
-            'Corporate' => 'Corporate style: Professional layouts, trustworthy grid systems, standard clean typography, dark blue/gray accents, polished enterprise design.',
-            'Neo-Retrospective' => 'Neo-Retrospective style: Retro color palette, vintage typography vibes combined with modern layouts, warm tones, nostalgic styling.',
-            'Glassmorphism' => 'Glassmorphism style: Frosted glass backgrounds using backdrop-blur effects, smooth glowing shadows, semi-transparent panels, modern glass panels.',
-            'Cyberpunk' => 'Cyberpunk style: High-contrast neon colors (cyan, magenta), dark futuristic backgrounds, glowing text and border shadows, tech grid patterns.',
-        ];
-
-        $styleInstruction = $styleInstructions[$style] ?? "Style: {$style}";
-        $fullPrompt = "Please design a webpage strictly following this style preference:\n{$styleInstruction}\n\nUser prompt description:\n{$prompt}";
-
-        $stitchKey = config('services.stitch.key');
-        $stitchProjectId = config('services.stitch.project_id');
-        $payload = null;
-        $provider = null;
-        $model = null;
-        $debugStitchOutput = null;
-
-        if ($stitchKey && $stitchProjectId) {
-            set_time_limit(180);
-
-            $nodeBinary = env('NODE_BINARY', 'C:\\Program Files\\nodejs\\node.exe');
-            if (!file_exists($nodeBinary)) {
-                $nodeBinary = 'node';
-            }
-
-            putenv("STITCH_API_KEY=" . $stitchKey);
-            putenv("STITCH_PROJECT_ID=" . $stitchProjectId);
-            putenv("STITCH_PROMPT=" . $fullPrompt);
-
-            $scriptPath = escapeshellarg(base_path('scripts/stitch-bridge.js'));
-            $nodeBinEscaped = escapeshellarg($nodeBinary);
-
-            // Execute via shell_exec to avoid CSPRNG crashes on Windows background tasks
-            $output = shell_exec("{$nodeBinEscaped} {$scriptPath} 2>&1");
-            $debugStitchOutput = $output;
-
-            if ($output) {
-                $decoded = json_decode($output, true);
-                if (is_array($decoded) && isset($decoded['html'])) {
-                    $html = $decoded['html'];
-                    if (!str_contains(strtolower($html), '<main')) {
-                        $html = '<main>' . $html . '</main>';
-                    }
-                    $payload = [
-                        'html' => $html,
-                        'css' => $decoded['css'] ?? '',
-                        'tailwindConfigScript' => $decoded['tailwindConfigScript'] ?? '',
-                        'meta' => $this->fallbackSeo($prompt),
-                    ];
-                    $provider = 'google-stitch';
-                    $model = 'google-stitch';
-                } else {
-                    \Illuminate\Support\Facades\Log::warning("Stitch generation bridge failed output: " . $output);
-                }
-            }
-        }
-
-        if (!$payload) {
-            $geminiKey = config('services.gemini.key');
-            if ($geminiKey) {
-                $model = config('services.gemini.pro_model');
-                $systemPrompt = $this->pageGenerationPrompt($prompt, $style);
-                $generated = $this->askGemini($model, $systemPrompt, true);
-                if ($generated) {
-                    $payload = $this->coercePagePayload($generated, $prompt, $style);
-                    $provider = 'gemini';
-                    $model = $this->lastGeminiModel ?: $model;
-                }
-            }
-        }
-
-        if (!$payload) {
-            $payload = $this->fallbackPagePayload($prompt, $style);
-            $provider = 'local-fallback';
-            $model = 'local-fallback';
-        }
+        $model = config('services.gemini.pro_model');
+        $generated = $this->askGemini($model, $this->pageGenerationPrompt($prompt, $style), true);
+        $payload = $generated
+            ? $this->coercePagePayload($generated, $prompt, $style)
+            : $this->fallbackPagePayload($prompt, $style);
 
         return response()->json([
             ...$payload,
             'project_id' => $project->id,
-            'model' => $model ?: 'local-fallback',
-            'provider' => $provider ?: 'local-fallback',
-            'diagnostics' => [
-                'stitch_configured' => ($stitchKey && $stitchProjectId) ? 'yes' : 'no',
-                'gemini_configured' => config('services.gemini.key') ? 'yes' : 'no',
-                'stitch_shell_output' => $debugStitchOutput,
-            ],
+            'model' => $generated ? ($this->lastGeminiModel ?: $model) : 'local-fallback',
+            'provider' => $generated ? 'gemini' : 'local-fallback',
             'steps' => [
                 'Reasoning through layout structure...',
                 'Mapping prompt to reusable builder sections...',
@@ -139,7 +62,7 @@ class AiController extends Controller
 
         return response()->json([
             'project_id' => $project->id,
-            'model' => $this->lastGeminiModel ?: $model,
+            'model' => $generated ? ($this->lastGeminiModel ?: $model) : 'local-fallback',
             'provider' => $generated ? 'gemini' : 'local-fallback',
             'mode' => $mode,
             'text' => $generated ?: $this->fallbackCopy($text, $mode),
@@ -165,31 +88,30 @@ class AiController extends Controller
         return response()->json([
             ...$payload,
             'project_id' => $project->id,
-            'model' => $this->lastGeminiModel ?: $model,
+            'model' => $generated ? ($this->lastGeminiModel ?: $model) : 'local-fallback',
             'provider' => $generated ? 'gemini' : 'local-fallback',
         ]);
     }
 
     private function askGemini(string $model, string $prompt, bool $expectsJson = false): array|string|null
     {
-        set_time_limit(120);
-
         $key = config('services.gemini.key');
         if (!$key) return null;
         $this->lastGeminiModel = null;
 
         foreach ($this->geminiModelCandidates($model) as $candidate) {
             try {
-                $generationConfig = ['temperature' => 0.45];
+                $generationConfig = ['temperature' => 0.45, 'maxOutputTokens' => $expectsJson ? 4096 : 1024];
                 if ($expectsJson) {
-                    $generationConfig['response_mime_type'] = 'application/json';
+                    $generationConfig['responseMimeType'] = 'application/json';
                 }
 
-                $response = Http::connectTimeout(5)
-                    ->timeout(60)
-                    ->withOptions(['verify' => false])
+                $response = Http::connectTimeout(4)
+                    ->timeout(18)
+                    ->withoutRedirecting()
+                    ->withHeaders(['x-goog-api-key' => $key])
                     ->acceptJson()
-                    ->post("https://generativelanguage.googleapis.com/v1beta/models/{$candidate}:generateContent?key={$key}", [
+                    ->post("https://generativelanguage.googleapis.com/v1beta/models/{$candidate}:generateContent", [
                     'contents' => [[
                         'parts' => [['text' => $prompt]],
                     ]],
@@ -215,8 +137,9 @@ class AiController extends Controller
                     $this->lastGeminiModel = $candidate;
                     return $decoded;
                 }
-            } catch (\Throwable) {
-                continue;
+            } catch (ConnectionException) {
+                Log::warning('Gemini connection failed.');
+                return null;
             }
         }
 
@@ -228,15 +151,12 @@ class AiController extends Controller
         return array_values(array_unique(array_filter([
             $model,
             config('services.gemini.flash_model'),
-            'gemini-2.5-flash',
-            'gemini-2.0-flash',
-            'gemini-1.5-flash',
-        ])));
+        ], static fn ($name) => is_string($name) && preg_match('/\Agemini-[a-z0-9.-]+\z/', $name))));
     }
 
     private function pageGenerationPrompt(string $prompt, string $style): string
     {
-        return "Generate a structured visual-builder page as JSON with keys html, css, meta. Use responsive semantic HTML, inline Tailwind-like utility classes allowed, no script tags. Style: {$style}. User prompt: {$prompt}";
+        return "Generate a structured visual-builder page as JSON with keys html, css, meta. Use responsive semantic HTML and self-contained CSS with matching class names. Use no scripts, external libraries, or external stylesheets. Return only page markup, not an HTML document wrapper. Style: {$style}. User prompt: {$prompt}";
     }
 
     private function coercePagePayload(array $generated, string $prompt, string $style): array
@@ -274,7 +194,7 @@ class AiController extends Controller
   <section class="min-h-[620px] px-8 py-20 flex items-center border-b border-[#222530]">
     <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
       <div>
-        <span class="text-[11px] font-bold uppercase tracking-[0.22em]" style="color: {$accent}">Generated with Google Stitch</span>
+        <span class="text-[11px] font-bold uppercase tracking-[0.22em]" style="color: {$accent}">{$brand}</span>
         <h1 class="text-5xl md:text-6xl font-black leading-tight mt-5">{$brand}</h1>
         <p class="text-lg text-[#c3c5d8] leading-relaxed mt-5">{$this->sentenceFromPrompt($prompt)}</p>
         <div class="flex flex-wrap gap-3 mt-8">
@@ -463,7 +383,7 @@ HTML;
   </section>
 
   <footer class="py-12 border-t border-gray-850 text-center text-xs text-gray-500 bg-gray-950/40">
-    <p>© 2026 StudioPro Engine. Built with Google Stitch AI.</p>
+    <p>© 2026 StudioPro</p>
   </footer>
 </main>
 HTML;

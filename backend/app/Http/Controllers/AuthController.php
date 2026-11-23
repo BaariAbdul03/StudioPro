@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -23,12 +24,10 @@ class AuthController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        $token = $user->createToken('studiopro-token')->plainTextToken;
+        Auth::login($user);
+        $request->session()->regenerate();
 
-        return response()->json([
-            'token' => $token,
-            'user' => $user,
-        ], 201);
+        return response()->json(['user' => $user], 201);
     }
 
     public function login(Request $request)
@@ -46,22 +45,19 @@ class AuthController extends Controller
             ]);
         }
 
-        // Optional: Clean up old tokens first to prevent database bloating
-        $user->tokens()->delete();
+        Auth::login($user);
+        $request->session()->regenerate();
 
-        $token = $user->createToken('studiopro-token')->plainTextToken;
-
-        return response()->json([
-            'token' => $token,
-            'user' => $user,
-        ]);
+        return response()->json(['user' => $user]);
     }
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-        return response()->json(['success' => true]);
+        return response()->noContent();
     }
 
     public function updateProfile(Request $request)

@@ -1,0 +1,12 @@
+{
+  "name": "studiopro-workspace",
+  "private": true,
+  "scripts": {
+    "build": "npm run build --prefix frontend",
+    "build:portfolio": "npm run build --prefix frontend -- --mode portfolio"
+  },
+  "dependencies": {
+    "@neon/config": "1.14.6",
+    "@neon/env": "2.1.9"
+  }
+}

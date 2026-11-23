@@ -16,7 +16,7 @@ class PageVersionController extends Controller
 
         return response()->json(
             $page->versions()
-                ->latest()
+                ->latest('id')
                 ->get()
         );
     }
@@ -28,17 +28,13 @@ class PageVersionController extends Controller
 
         $validated = $request->validate([
             'version_label' => 'nullable|string|max:100',
-            'components' => 'nullable|array',
-            'styles' => 'nullable|array',
-            'html' => 'nullable|string',
-            'css' => 'nullable|string',
-            'meta' => 'nullable|array',
-        ]);
+        ] + Page::draftRules());
 
         $version = $page->versions()->create([
             'version_label' => $validated['version_label'] ?? 'Manual checkpoint',
             'components' => $validated['components'] ?? $page->components ?? [],
             'styles' => $validated['styles'] ?? $page->styles ?? [],
+            'project_data' => array_key_exists('project_data', $validated) ? $validated['project_data'] : $page->project_data,
             'html' => $validated['html'] ?? $page->html,
             'css' => $validated['css'] ?? $page->css,
             'meta' => $validated['meta'] ?? $page->meta ?? [],
@@ -56,6 +52,7 @@ class PageVersionController extends Controller
         $page->update([
             'components' => $version->components,
             'styles' => $version->styles,
+            'project_data' => $version->project_data,
             'html' => $version->html,
             'css' => $version->css,
             'meta' => $version->meta ?? [],

@@ -30,7 +30,7 @@
       </button>
 
       <button 
-        @click="selectTab('symbols')"
+        v-if="!demo" @click="selectTab('symbols')"
         class="px-5 py-3 flex items-center gap-3 transition-all duration-150"
         :class="store.activeLeftTab === 'symbols' ? 'bg-primary/15 text-primary border-l-2 border-primary' : 'text-on-surface-variant hover:bg-[#2d3449] border-l-2 border-transparent'"
       >
@@ -39,7 +39,7 @@
       </button>
 
       <button 
-        @click="selectTab('assets')"
+        v-if="!demo" @click="selectTab('assets')"
         class="px-5 py-3 flex items-center gap-3 transition-all duration-150"
         :class="store.activeLeftTab === 'assets' ? 'bg-primary/15 text-primary border-l-2 border-primary' : 'text-on-surface-variant hover:bg-[#2d3449] border-l-2 border-transparent'"
       >
@@ -48,7 +48,7 @@
       </button>
 
       <button 
-        @click="selectTab('config')"
+        v-if="!demo" @click="selectTab('config')"
         class="px-5 py-3 flex items-center gap-3 transition-all duration-150"
         :class="store.activeLeftTab === 'config' ? 'bg-primary/15 text-primary border-l-2 border-primary' : 'text-on-surface-variant hover:bg-[#2d3449] border-l-2 border-transparent'"
       >
@@ -98,7 +98,7 @@
       </div>
 
       <!-- Symbols Content -->
-      <div v-show="store.activeLeftTab === 'symbols'" class="flex-1 flex flex-col overflow-hidden p-4">
+      <div v-if="!demo" v-show="store.activeLeftTab === 'symbols'" class="flex-1 flex flex-col overflow-hidden p-4">
         <span class="text-on-surface-variant text-[11px] font-bold uppercase tracking-wider mb-3">Symbols Collection</span>
         
         <div class="flex-grow overflow-y-auto custom-scrollbar flex flex-col gap-3">
@@ -128,19 +128,18 @@
             </div>
           </div>
 
-          <!-- Hero Card Symbol Card (Triggers Isolation Mode) -->
+          <!-- Hero Card -->
           <div 
-            @click="toggleIsolation" 
-            class="group relative p-2 rounded cursor-pointer transition-all border"
-            :class="store.isIsolationMode ? 'bg-primary/10 border-primary' : 'bg-[#060e20] border-outline hover:border-primary'"
+            @click="insertSymbol('hero')"
+            class="group relative p-2 rounded cursor-pointer transition-all border bg-[#060e20] border-outline hover:border-primary"
           >
             <div class="h-16 w-full bg-[#2d3449] rounded-sm flex items-center justify-center mb-1.5 overflow-hidden">
               <div class="w-full h-full bg-cover bg-center opacity-70" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAXV-zWI0S6-7uDzQ-DDu5fSLVOAjxj9CHnpT_iAS_o7DTxCMXHdqpbEi_g3B-7JlnOZKO7VcKtSni7XmwY85CZg58yYaFZqOCcR9c2bdASI6PeSDDibta5BN4e_YtgZJ-YHUoz8V8L2-iG0ZN-_zoyvnXqCSavW-GTCgluPLXSObLZdR0RbbkrNSe42rcgregHp0ehD7VkJekoh2GNxpgxiIZGUrSCE0Di53yuw_lk6aPCNlkdUflR903jXJOp5KQaCEZ8kEkJDj1v')"></div>
             </div>
             <div class="flex items-center justify-between">
-              <span class="text-xs font-semibold" :class="store.isIsolationMode ? 'text-primary' : 'text-white'">Hero Card</span>
+              <span class="text-xs font-semibold text-white">Hero Card</span>
               <span class="flex items-center gap-1 text-[9px] text-primary bg-primary/15 px-1.5 py-0.5 rounded font-mono font-bold">
-                <span class="material-symbols-outlined text-[10px]" style="font-variation-settings: 'FILL' 1;">auto_fix_high</span> {{ store.isIsolationMode ? 'Isolated' : 'Edit Symbol' }}
+                Insert
               </span>
             </div>
           </div>
@@ -161,7 +160,7 @@
       </div>
 
       <!-- Assets Content -->
-      <div v-show="store.activeLeftTab === 'assets'" class="flex-grow overflow-hidden flex flex-col p-4">
+      <div v-if="!demo" v-show="store.activeLeftTab === 'assets'" class="flex-grow overflow-hidden flex flex-col p-4">
         <div class="flex justify-between items-center mb-3">
           <span class="text-on-surface-variant text-[11px] font-bold uppercase tracking-wider">Media Library</span>
           <input ref="assetInput" type="file" accept="image/*" class="hidden" @change="uploadAsset">
@@ -185,7 +184,7 @@
             :key="asset.url || asset.src"
             draggable="true"
             @click="insertAsset(asset.url || asset.src, asset.filename || asset.alt)"
-            @dragstart="e => e.dataTransfer.setData('text/html', `<img src='${asset.url || asset.src}' alt='${asset.filename || asset.alt}' style='width: 100%; height: auto;'/>`)"
+            @dragstart="e => dragAsset(e, asset)"
             class="group relative aspect-square bg-editor-bg border rounded-sm overflow-hidden cursor-grab active:cursor-grabbing hover:border-white transition-all"
             :class="index === 0 ? 'border-primary ring-1 ring-[#2E62FF]' : 'border-outline'"
           >
@@ -202,7 +201,7 @@
       </div>
 
       <!-- Config Content -->
-      <div v-show="store.activeLeftTab === 'config'" class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-5 pb-8">
+      <div v-if="!demo" v-show="store.activeLeftTab === 'config'" class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-5 pb-8">
         
         <div>
           <h2 class="text-on-surface text-sm font-black mb-1">Configuration</h2>
@@ -316,6 +315,9 @@
 </template>
 
 <script setup>
+const props = defineProps({ demo: Boolean })
+import { apiFetch } from '../../api'
+
 import { ref, watch, nextTick, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useWorkspaceStore } from '../../stores/workspace'
@@ -383,14 +385,10 @@ const selectTab = (tab) => {
   }
 }
 
-const toggleIsolation = () => {
-  const isCurrentlyIsolated = store.isIsolationMode
-  store.setIsolationMode(!isCurrentlyIsolated, 'Hero Card')
-}
-
 const insertSymbol = (type) => {
   if (!store.editor) return
   const symbols = {
+    hero: store.editor.BlockManager.get('hero-section')?.get('content'),
     navbar: `<header data-symbol="navbar" class="w-full bg-editor-bg border-b border-outline px-8 py-4 flex items-center justify-between text-white">
   <div class="font-black text-lg">StudioPro</div>
   <nav class="flex gap-6 text-sm text-on-surface-variant"><a>Work</a><a>Pricing</a><a>Contact</a></nav>
@@ -418,7 +416,7 @@ const uploadAsset = async (event) => {
   formData.append('file', file)
 
   try {
-    const response = await fetch(`${store.apiBaseUrl}/projects/${projectId.value}/assets`, {
+    const response = await apiFetch(`${store.apiBaseUrl}/projects/${projectId.value}/assets`, {
       method: 'POST',
       body: formData
     })
@@ -460,8 +458,9 @@ const saveDeployWebhook = async () => {
 }
 
 onMounted(async () => {
+  if (props.demo) return
   try {
-    const res = await fetch(`${store.apiBaseUrl}/projects/${projectId.value}/assets`)
+    const res = await apiFetch(`${store.apiBaseUrl}/projects/${projectId.value}/assets`)
     if (res.ok) {
       uploadedAssets.value = await res.json()
     }
@@ -470,9 +469,19 @@ onMounted(async () => {
   }
 })
 
+function dragAsset(event, asset) {
+  const image = document.createElement('img')
+  image.src = asset.url || asset.src
+  image.alt = asset.filename || asset.alt || ''
+  event.dataTransfer.setData('text/html', image.outerHTML)
+}
+
 const insertAsset = (src, alt) => {
   if (!store.editor) return
-  const component = `<img src="${src}" alt="${alt}" class="w-full h-auto object-cover rounded-sm" />`
+  const component = {
+    type: 'image',
+    attributes: { src, alt: alt || '', class: 'w-full h-auto object-cover rounded-sm' }
+  }
   const selected = store.selectedComponent
   if (selected && selected.components) {
     selected.append(component)

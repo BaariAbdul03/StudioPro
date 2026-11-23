@@ -30,12 +30,7 @@ class Asset extends Model
     protected function url(): Attribute
     {
         return Attribute::make(
-            get: function () {
-                if (str_starts_with($this->path, 'http://') || str_starts_with($this->path, 'https://')) {
-                    return $this->path;
-                }
-                return url('/storage/'.ltrim($this->path, '/'));
-            }
+            get: fn () => "/api/projects/{$this->project_id}/assets/{$this->id}/file",
         );
     }
 }

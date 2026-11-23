@@ -12,6 +12,7 @@ class PageVersion extends Model
         'version_label',
         'components',
         'styles',
+        'project_data',
         'html',
         'css',
         'meta',
@@ -20,6 +21,7 @@ class PageVersion extends Model
     protected $casts = [
         'components' => 'array',
         'styles' => 'array',
+        'project_data' => 'array',
         'meta' => 'array',
     ];
 

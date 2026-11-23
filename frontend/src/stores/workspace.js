@@ -1,5 +1,17 @@
+import { sanitizeHtml, sanitizeProjectData } from '../pageContent'
+import { apiFetch } from '../api'
 import { defineStore } from 'pinia'
 import { markRaw } from 'vue'
+
+const pendingSaves = new WeakMap()
+const defaultPageMeta = {
+  seoTitle: '',
+  seoDescription: '',
+  ogTitle: '',
+  ogDescription: '',
+  headCode: '',
+  bodyCode: ''
+}
 
 export const useWorkspaceStore = defineStore('workspace', {
   state: () => ({
@@ -9,6 +21,8 @@ export const useWorkspaceStore = defineStore('workspace', {
     zoomLevel: 100,
     selectedComponent: null,
     isUnsaved: false,
+    revision: 0,
+    saveState: '',
     styleTrigger: 0,
     activeLeftTab: 'layers',
     activeRightTab: 'style',
@@ -18,17 +32,10 @@ export const useWorkspaceStore = defineStore('workspace', {
     isolatedSymbolName: '',
     isCartDrawerOpen: false,
     isAiGeneratorOpen: false,
-    pageMeta: {
-      seoTitle: 'StudioPro | Professional Design Engine',
-      seoDescription: 'Build, publish, and export high-performance visual pages with StudioPro.',
-      ogTitle: 'StudioPro Visual Page Builder',
-      ogDescription: 'A pro-grade editor for pages, commerce, CMS, interactions, and static exports.',
-      headCode: '',
-      bodyCode: ''
-    },
+    pageMeta: { ...defaultPageMeta },
     versions: [],
     formSubmissions: [],
-    apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api',
+    apiBaseUrl: '/api',
     preferences: {
       canvas: {
         width: '1440px',
@@ -111,7 +118,7 @@ export const useWorkspaceStore = defineStore('workspace', {
     setActivePage(page) {
       this.activePage = page
       this.pageMeta = {
-        ...this.pageMeta,
+        ...defaultPageMeta,
         ...(page?.meta || {})
       }
     },
@@ -129,55 +136,78 @@ export const useWorkspaceStore = defineStore('workspace', {
       this.selectedComponent = component ? markRaw(component) : null;
     },
     markDirty(state = true) {
+      if (state) this.revision++
       this.isUnsaved = state
     },
     incrementStyleTrigger() {
       this.styleTrigger++
     },
-    async savePage(projectId, pageId) {
-      if (!this.editor) return
-      const html = this.editor.getHtml()
-      const css = this.editor.getCss()
-      const components = this.editor.getComponents().toJSON()
-      const styles = this.editor.getStyle()
-      const meta = this.pageMeta
-      
-      try {
-        const response = await fetch(`${this.apiBaseUrl}/projects/${projectId}/pages/${pageId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            html,
-            css,
-            components,
-            styles,
-            meta,
-            is_published: true
-          })
-        })
-        if (!response.ok) throw new Error('Failed to save page')
-        this.isUnsaved = false
-        return true
-      } catch (err) {
-        console.error('Failed to save page:', err)
-        throw err
+    draftPayload() {
+      return {
+        project_data: sanitizeProjectData(this.editor.getProjectData()),
+        html: sanitizeHtml(this.editor.getHtml()),
+        css: this.editor.getCss() || '',
+        meta: this.pageMeta
       }
+    },
+    loadDraft(editor, page) {
+      if (page.project_data) {
+        editor.loadProjectData(sanitizeProjectData(page.project_data))
+      } else {
+        editor.setComponents(sanitizeHtml(page.html))
+        editor.setStyle(page.css || '')
+      }
+    },
+    savePage(projectId, pageId) {
+      if (!this.editor || !this.activePage) return
+      const editor = this.editor
+      const save = async () => {
+        if (this.editor !== editor) return
+        const revision = this.revision
+        this.saveState = 'Saving…'
+        try {
+          const response = await apiFetch(this.apiBaseUrl + '/projects/' + projectId + '/pages/' + pageId, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(this.draftPayload())
+          })
+          if (!response.ok) throw new Error('Draft could not be saved. Try again.')
+          if (this.editor === editor) {
+            if (revision === this.revision) this.markDirty(false)
+            this.saveState = ''
+          }
+        } catch (error) {
+          if (this.editor === editor) this.saveState = 'Save failed. Retry.'
+          throw error
+        }
+      }
+      const previous = pendingSaves.get(this) || Promise.resolve()
+      const current = previous.catch(() => {}).then(save)
+      pendingSaves.set(this, current)
+      return current
+    },
+    async publishPage(projectId, pageId, publish) {
+      if (publish) await this.savePage(projectId, pageId)
+      const response = await apiFetch(this.apiBaseUrl + '/projects/' + projectId + '/pages/' + pageId + '/publish', {
+        method: publish ? 'POST' : 'DELETE'
+      })
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.message || 'Could not update the public link. Try again.')
+      }
+      this.activePage = await response.json()
     },
     async createPageVersion(projectId, pageId, versionLabel = 'Manual checkpoint') {
       if (!this.editor) return null
       const payload = {
+        ...this.draftPayload(),
         version_label: versionLabel,
-        html: this.editor.getHtml(),
-        css: this.editor.getCss(),
         components: this.editor.getComponents().toJSON(),
         styles: this.editor.getStyle(),
         meta: this.pageMeta
       }
 
-      const response = await fetch(`${this.apiBaseUrl}/projects/${projectId}/pages/${pageId}/versions`, {
+      const response = await apiFetch(`${this.apiBaseUrl}/projects/${projectId}/pages/${pageId}/versions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -191,7 +221,7 @@ export const useWorkspaceStore = defineStore('workspace', {
       return version
     },
     async fetchPageVersions(projectId, pageId) {
-      const response = await fetch(`${this.apiBaseUrl}/projects/${projectId}/pages/${pageId}/versions`, {
+      const response = await apiFetch(`${this.apiBaseUrl}/projects/${projectId}/pages/${pageId}/versions`, {
         headers: {
           'Accept': 'application/json'
         }
@@ -201,42 +231,65 @@ export const useWorkspaceStore = defineStore('workspace', {
       return this.versions
     },
     async restorePageVersion(projectId, pageId, versionId) {
-      const response = await fetch(`${this.apiBaseUrl}/projects/${projectId}/pages/${pageId}/versions/${versionId}/restore`, {
+      await pendingSaves.get(this)?.catch(() => {})
+      const response = await apiFetch(`${this.apiBaseUrl}/projects/${projectId}/pages/${pageId}/versions/${versionId}/restore`, {
         method: 'POST',
         headers: { 'Accept': 'application/json' }
       })
       if (!response.ok) throw new Error('Failed to restore page version')
       const page = await response.json()
       this.setActivePage(page)
-      if (this.editor) {
-        if (Array.isArray(page.components) && page.components.length) {
-          this.editor.setComponents(page.components)
-        } else {
-          this.editor.setComponents(page.html || '')
-        }
-        if (Array.isArray(page.styles) && page.styles.length) {
-          this.editor.setStyle(page.styles)
-        } else {
-          this.editor.setStyle(page.css || '')
-        }
-      }
+      if (this.editor) this.loadDraft(this.editor, page)
       this.markDirty(false)
+      this.saveState = ''
       return page
     },
-    downloadStaticExport(projectId, pageId) {
-      window.open(`${this.apiBaseUrl}/projects/${projectId}/pages/${pageId}/export`, '_blank', 'noopener,noreferrer')
+    async downloadStaticExport(projectId, pageId) {
+      const response = await apiFetch(`${this.apiBaseUrl}/projects/${projectId}/pages/${pageId}/export`)
+      if (!response.ok) throw new Error('Could not export the draft.')
+
+      const download = document.createElement('a')
+      const file = URL.createObjectURL(await response.blob())
+      download.href = file
+      download.download = response.headers.get('Content-Disposition')?.match(/filename="?([a-z0-9-]+\.zip)"?/i)?.[1] || 'studio-page.zip'
+      download.click()
+      setTimeout(() => URL.revokeObjectURL(file), 1000)
     },
-    async generateAiPage(projectId, payload) {
-      const response = await fetch(`${this.apiBaseUrl}/projects/${projectId}/ai/generate-page`, {
+    async generateAiPage(projectId, payload, signal) {
+      const response = await apiFetch(`${this.apiBaseUrl}/projects/${projectId}/ai/generate-page`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal
       })
       if (!response.ok) throw new Error('AI page generation failed')
       return response.json()
     },
+    async generateStitchDraft(projectId, payload, signal) {
+      const url = `${this.apiBaseUrl}/projects/${projectId}/ai/stitch`
+      const submission = await apiFetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal
+      })
+      if (submission.status === 429) throw new Error('Too many Stitch requests. Wait a few minutes and try again.')
+      if (!submission.ok) throw new Error('Could not start Stitch generation.')
+
+      const { id } = await submission.json()
+      for (let attempt = 0; attempt < 42; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, 5000))
+        signal.throwIfAborted()
+        const response = await apiFetch(url + '/' + encodeURIComponent(id), { signal })
+        if (!response.ok) throw new Error('Could not check the Stitch draft.')
+        const draft = await response.json()
+        if (draft.status === 'ready') return draft
+        if (draft.status === 'failed') throw new Error('Stitch could not create the screen. Try Gemini or check the Stitch setup.')
+      }
+      throw new Error('Stitch is still working. Check your Stitch project before retrying.')
+    },
     async rewriteAiCopy(projectId, payload) {
-      const response = await fetch(`${this.apiBaseUrl}/projects/${projectId}/ai/copy`, {
+      const response = await apiFetch(`${this.apiBaseUrl}/projects/${projectId}/ai/copy`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify(payload)
@@ -245,7 +298,7 @@ export const useWorkspaceStore = defineStore('workspace', {
       return response.json()
     },
     async generateAiSeo(projectId, payload) {
-      const response = await fetch(`${this.apiBaseUrl}/projects/${projectId}/ai/seo`, {
+      const response = await apiFetch(`${this.apiBaseUrl}/projects/${projectId}/ai/seo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify(payload)
@@ -254,7 +307,7 @@ export const useWorkspaceStore = defineStore('workspace', {
       return response.json()
     },
     async fetchFormSubmissions(projectId) {
-      const response = await fetch(`${this.apiBaseUrl}/projects/${projectId}/form-submissions`, {
+      const response = await apiFetch(`${this.apiBaseUrl}/projects/${projectId}/form-submissions`, {
         headers: {
           'Accept': 'application/json'
         }
@@ -264,17 +317,17 @@ export const useWorkspaceStore = defineStore('workspace', {
       return this.formSubmissions
     },
     async fetchProject(projectId) {
-      const response = await fetch(`${this.apiBaseUrl}/projects/${projectId}`, {
+      const response = await apiFetch(`${this.apiBaseUrl}/projects/${projectId}`, {
         headers: {
           'Accept': 'application/json'
         }
       })
-      if (!response.ok) throw new Error('Failed to load project')
+      if (!response.ok) throw Object.assign(new Error('Failed to load project'), { status: response.status })
       this.activeProject = await response.json()
       return this.activeProject
     },
     async updateProjectSettings(projectId, settings) {
-      const response = await fetch(`${this.apiBaseUrl}/projects/${projectId}`, {
+      const response = await apiFetch(`${this.apiBaseUrl}/projects/${projectId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

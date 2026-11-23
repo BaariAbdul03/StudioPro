@@ -1,86 +1,33 @@
-# StudioPro Visual Page Builder
+﻿# StudioPro
 
-A professional, high-performance drag-and-drop visual page building engine with integrated e-commerce features, dynamic CMS data bindings, and static page export capabilities.
+A visual page builder for a single-client workspace. Start from one of 20 templates, edit in GrapesJS, isolate a component, compare three viewport widths, and publish a public URL or download a static ZIP. The portfolio includes a finished sample visitors can edit in their browser.
 
-Built using **Vue 3 + Vite** for the visual frontend canvas and **Laravel 13** backed by **Supabase PostgreSQL** for the robust administrative API.
+## Local setup
 
----
+Requirements are PHP 8.4.28 or newer in the 8.4/8.5 series, Composer 2, and Node 24. Enable PHP's PDO SQLite, fileinfo, GD, and ZIP extensions for local development and tests. Use PDO PostgreSQL for Neon.
 
-## 🚀 Key Features
+1. From `backend`, run `composer install`. Copy `.env.example` to `.env` if it is missing, then run `php artisan key:generate` for the new file. With an existing Supabase environment file, set `DB_CONNECTION=sqlite`, clear `DB_URL`, and use the local filesystem settings in the example.
+2. For SQLite, run `php artisan migrate`. For Neon, use the setup below. Run `php artisan studio:provision owner@example.test` to create an owner and sample using a private password. Start Laravel with `php artisan serve --no-reload` so that uploads can use the system temporary directory on Windows.
+3. From `frontend`, run `npm ci --ignore-scripts` and `npm run dev`. Open `http://127.0.0.1:5173` to sign in. Open `/demo` to edit the sample within your browser tab.
 
-* **Advanced Visual Editor:** Full-featured GrapesJS integration customized with tailwind utility classes, custom templates, and layout sections.
-* **Component Isolation Mode:** Dedicated layout styling workspace for individual symbol layers.
-* **CMS Collections:** Dynamic schema definitions and drag-and-drop data queries previewed live in the canvas.
-* **Commerce Blocks:** Native integration of product feeds, price tags, and cart workflows.
-* **AI Page Generation:** Contextual copy rewriting, SEO metadata optimization, and page layout layout generation.
-* **Static Export:** One-click static package packaging (clean HTML/CSS/JS export) for CDNs.
+The Vite development server proxies private API requests to Laravel at `127.0.0.1:8000`. Use `npm run build:portfolio` for Cloudflare Pages. See [Deploy StudioPro](DEPLOYMENT.md) for Northflank and Neon configuration.
 
----
+The public landing page and FAQ are available at `/welcome` in local development. The site information pages live at `/about`, `/privacy`, and `/terms`.
 
-## 🛠️ Tech Stack
+## Neon Postgres
 
-* **Frontend:** Vue 3 (Composition API), Pinia (State Management), Vue Router, TailwindCSS, GrapesJS, Axios.
-* **Backend:** Laravel 13, PHP 8.3+, Sanctum (Token Auth), HTTP Client (SSRF validation).
-* **Database:** Supabase PostgreSQL (Stateful API connection via connection pooling).
+Run `neon deploy` from the repository root, then `neon env pull --file backend/.env --service postgres` so Laravel can load the generated variables. Use `DB_CONNECTION=pgsql`. Laravel uses `DATABASE_URL` for pooled traffic and `DATABASE_URL_UNPOOLED` for migrations. Existing `DB_URL` and `DB_DIRECT_URL` overrides take priority. Neon connections use `verify-full` and need a trusted CA bundle through `DB_SSLROOTCERT` or PHP’s CA configuration.
 
----
+From `backend`, run `php artisan migrate --database=pgsql_direct --force` to apply the workspace schema. Run `npm run build` at the repository root to build the frontend. For local HTTP development, use `APP_ENV=local`, `APP_URL=http://127.0.0.1:8000`, and `SESSION_SECURE_COOKIE=false` in the Laravel process environment.
 
-## 💻 Local Setup & Development
+## Local AI tools
 
-### 1. Prerequisites
-* PHP 8.3 or higher
-* Composer
-* Node.js (v20+)
-* PostgreSQL / SQLite
+Sign in and open a project to generate a draft, rewrite selected copy, or suggest SEO metadata. Set `GEMINI_API_KEY` in the backend environment to use Gemini. The built-in templates and text rules work without provider credentials. The editor shows which produced a result.
 
-### 2. Backend Installation
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-2. Install dependencies:
-   ```bash
-   composer install
-   ```
-3. Set up the environment file:
-   ```bash
-   cp .env.example .env
-   php artisan key:generate
-   ```
-4. Adjust `.env` connection parameters to point to your Supabase instance:
-   ```dotenv
-   DB_CONNECTION=pgsql
-   DB_HOST=aws-1-ap-southeast-1.pooler.supabase.com
-   DB_PORT=6543
-   DB_DATABASE=postgres
-   DB_USERNAME=postgres.your-project-id
-   DB_PASSWORD=your-password
-   ```
-5. Run migrations and database seeding:
-   ```bash
-   php artisan migrate --seed
-   ```
-6. Start the local server:
-   ```bash
-   php artisan serve
-   ```
+To enable Stitch locally, run `npm ci --ignore-scripts --prefix backend` from the root. Set `STUDIO_STITCH_ENABLED=true`, `STITCH_PROJECT_ID`, `STITCH_API_KEY`, and `CACHE_STORE=database` in the backend environment. On Windows, also set `DB_QUEUE_RETRY_AFTER=180` and run `php artisan queue:work database --queue=stitch --timeout=158 --tries=1` from `backend` alongside the app. On Linux, Laravel starts a background process for each request.
 
-### 3. Frontend Installation
-1. Navigate to the frontend directory:
-   ```bash
-   cd ../frontend
-   ```
-2. Install packages:
-   ```bash
-   npm install
-   ```
-3. Start the Vite development server:
-   ```bash
-   npm run dev
-   ```
+## Checks
 
----
-
-## 📖 Deployment Guides
-
-For complete step-by-step production deployment instructions, refer to our [Deployment Plan](DEPLOYMENT.md).
+- Backend from `backend` with `php artisan test`.
+- Frontend from `frontend` with `npm run test:unit` and `npm run build`.
+- Browser tests from `frontend` after `npx playwright install chromium`. Run `npm run test:e2e` for the private workflow and `npm run test:e2e:public` for the portfolio. The private suite starts a PHP server on port 8180 and uses a SQLite fixture. Set `PHP_BINARY` if PHP is outside your PATH.

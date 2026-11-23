@@ -1,73 +1,56 @@
-# --- Stage 1: Build Vue/Vite Frontend SPA ---
-FROM node:20-alpine AS frontend-builder
+FROM node:24.18.0-bookworm-slim AS node
+
+FROM node AS frontend
 WORKDIR /frontend
-
-# Copy package configurations and install dependencies
-COPY frontend/package*.json ./
-RUN npm install
-
-# Copy frontend source code and compile production assets
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci --ignore-scripts
 COPY frontend/ ./
-ENV VITE_API_BASE_URL=/api
 RUN npm run build
 
-# --- Stage 2: Build PHP Apache Backend Server ---
-FROM php:8.3-apache AS runner
+FROM node AS stitch
+WORKDIR /stitch
+COPY backend/package.json backend/package-lock.json ./
+RUN npm ci --omit=dev --ignore-scripts
 
-# Copy official composer binary
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+FROM php:8.4.28-apache
+COPY --from=composer:2.10.2 /usr/bin/composer /usr/bin/composer
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
 
-# Install system dependencies, Node.js, npm, and PHP extensions
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    postgresql-client \
-    libpq-dev \
-    libzip-dev \
-    libpng-dev \
-    libxml2-dev \
-    git \
-    unzip \
-    nodejs \
-    npm \
-    && docker-php-ext-install \
-    pcntl \
-    pdo_pgsql \
-    pgsql \
-    opcache \
-    zip \
-    bcmath \
+    ca-certificates libatomic1 libpq-dev libzip-dev unzip \
+    && docker-php-ext-install -j"$(nproc)" pdo_pgsql opcache zip pcntl \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
 WORKDIR /var/www/html
-
-# Copy Composer files and install production dependencies
 COPY backend/composer.json backend/composer.lock ./
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --no-dev --no-interaction --no-plugins --no-scripts --prefer-dist --optimize-autoloader
 
-# Copy backend package configurations and install Node dependencies for Stitch bridge
-COPY backend/package*.json ./
-RUN npm install --omit=dev
+COPY backend/app ./app
+COPY backend/artisan ./artisan
+COPY backend/bootstrap ./bootstrap
+COPY backend/config ./config
+COPY backend/database ./database
+COPY backend/public ./public
+COPY backend/resources ./resources
+COPY backend/routes ./routes
+COPY backend/scripts/stitch-bridge.js ./scripts/stitch-bridge.js
+COPY backend/package.json ./package.json
+COPY --from=stitch /stitch/node_modules ./node_modules
+COPY backend/storage ./storage
+COPY --from=frontend /frontend/dist/ ./public/
+COPY frontend/src/data/demo.html frontend/src/data/demo.css ./resources/demo/
 
-# Copy backend application files
-COPY backend/ .
+RUN composer dump-autoload --no-dev --optimize \
+    && a2enmod rewrite headers \
+    && chown -R www-data:www-data storage bootstrap/cache
 
-# Copy built frontend static assets into Laravel's public directory
-COPY --from=frontend-builder /frontend/dist/ ./public/
+COPY backend/docker/apache.conf /etc/apache2/sites-available/000-default.conf
+COPY backend/docker/php.ini /usr/local/etc/php/conf.d/studio.ini
+COPY backend/docker/start.sh /usr/local/bin/studio-start
+COPY backend/docker/migrate.sh /usr/local/bin/studio-migrate
 
-# Run post-install scripts and optimize autoloading
-RUN composer dump-autoload --no-dev --optimize
-
-# Change Apache document root to Laravel's public directory
-RUN sed -i -e "s|/var/www/html|/var/www/html/public|g" /etc/apache2/sites-available/000-default.conf
-
-# Enable Apache mod_rewrite for Laravel routing
-RUN a2enmod rewrite
-
-# Set permissions for storage directories
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-
+ENV PORT=80
+ENV DB_SSLROOTCERT=/etc/ssl/certs/ca-certificates.crt
 EXPOSE 80
-
-CMD ["sh", "-c", "php artisan migrate --force && apache2-foreground"]
+CMD ["sh", "/usr/local/bin/studio-start"]

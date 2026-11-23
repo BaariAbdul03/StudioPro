@@ -1,0 +1,8 @@
+{
+  "name": "studiopro-pagebuilder",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-11-23",
+  "vars": {
+    "PUBLISHED_BUCKET_URL": "https://br-damp-sunset-be104hgi.storage.c-9.us-east-2.aws.neon.tech/studio-published"
+  }
+}

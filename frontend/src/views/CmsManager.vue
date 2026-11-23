@@ -1,12 +1,12 @@
 <template>
-  <div class="h-screen w-full flex flex-col bg-surface text-on-surface overflow-hidden select-none font-geist mesh-bg relative">
+  <div class="studio-light studio-management min-h-dvh md:h-dvh w-full flex flex-col bg-surface text-on-surface overflow-x-clip md:overflow-hidden font-geist mesh-bg relative">
     <TopBar />
 
-    <main class="flex-1 flex flex-col px-8 py-6 overflow-hidden min-h-0">
+    <main class="flex-1 flex flex-col px-4 py-5 md:px-8 md:py-6 md:overflow-hidden min-h-0">
       <div class="max-w-[1600px] mx-auto w-full flex flex-col flex-1 min-h-0 space-y-0">
         
         <!-- Header with Breadcrumbs & Actions -->
-        <div class="flex items-end justify-between mb-6 relative shrink-0">
+        <div class="flex flex-wrap items-end justify-between gap-3 mb-6 relative shrink-0">
           <!-- Hidden Select is removed -->
           
           <div class="relative z-10 pointer-events-none">
@@ -24,7 +24,7 @@
             </h1>
           </div>
 
-          <div class="flex items-center gap-4 relative z-30">
+          <div class="flex flex-wrap items-center gap-2 sm:gap-4 relative z-30">
             <template v-if="activeCollection">
               <button 
                 @click.stop="openAddFieldModal"
@@ -47,9 +47,9 @@
         </div>
 
         <!-- 2 Column Layout -->
-        <div class="flex gap-6 flex-1 min-h-0 mb-6">
+        <div class="flex flex-col md:flex-row gap-4 md:gap-6 flex-1 min-h-0 mb-6">
           <!-- Left Sidebar -->
-          <div class="w-72 flex flex-col gap-4 shrink-0">
+          <div class="w-full md:w-72 flex flex-col gap-4 shrink-0">
             <button 
               @click.stop="openNewCollectionModal" 
               class="w-full px-6 py-3 border border-outline/30 text-on-surface text-[13px] font-medium rounded-xl bg-[#171f33]/40 hover:bg-[#222a3d]/50 transition-colors flex items-center justify-center gap-2"
@@ -87,18 +87,18 @@
 
         <!-- Data Table Container -->
         <div class="rounded-3xl overflow-hidden bg-surface-container/70 backdrop-blur-[12px] border border-outline/30 flex flex-col flex-1 min-h-0">
-          <div class="flex-1 overflow-auto custom-scrollbar">
+          <div class="flex-1 overflow-auto studio-table" role="region" tabindex="0" aria-label="Collection items">
             <div v-if="loadingItems" class="p-20 flex flex-col items-center justify-center gap-4 text-on-surface-variant">
               <span class="material-symbols-outlined text-4xl animate-spin">refresh</span>
               <span class="text-sm font-bold">Loading collection items...</span>
             </div>
             
-            <div v-else-if="!activeCollection" class="p-24 flex flex-col items-center justify-center gap-4 text-on-surface-variant min-h-[350px]">
+            <div v-else-if="!activeCollection" class="p-6 sm:p-12 flex flex-col items-center justify-center gap-4 text-on-surface-variant min-h-[350px]">
               <span class="material-symbols-outlined text-5xl opacity-30 text-primary">database</span>
               <span class="text-sm font-bold text-on-surface-variant">Select a collection above to manage database.</span>
             </div>
 
-            <div v-else-if="items.length === 0" class="p-24 flex flex-col items-center justify-center gap-4 text-on-surface-variant min-h-[350px]">
+            <div v-else-if="items.length === 0" class="p-6 sm:p-12 flex flex-col items-center justify-center gap-4 text-on-surface-variant min-h-[350px]">
               <span class="material-symbols-outlined text-5xl opacity-30">post_add</span>
               <span class="text-sm font-bold text-on-surface-variant">No content items found.</span>
               <button @click="openNewItemModal" class="mt-2 px-6 py-3 text-white text-[13px] font-medium rounded-xl hover:opacity-90 transition-all" style="background: linear-gradient(135deg, #2E62FF 0%, #1e40af 100%); box-shadow: 0 4px 15px rgba(46, 98, 255, 0.25);">Create First Item</button>
@@ -185,7 +185,7 @@
     
     <!-- 1. Create Collection Modal -->
     <div v-if="showCollectionModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div class="w-[400px] bg-surface-container border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4">
+      <div class="w-[400px] max-w-[calc(100%-1.5rem)] bg-surface-container border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4">
         <h2 class="text-white text-base font-bold tracking-tight">Create Collection</h2>
         <div class="space-y-3">
           <div class="flex flex-col gap-1.5">
@@ -206,7 +206,7 @@
 
     <!-- Edit Collection Modal -->
     <div v-if="showEditCollectionModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div class="w-[400px] bg-surface-container border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4 font-geist">
+      <div class="w-[400px] max-w-[calc(100%-1.5rem)] bg-surface-container border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4 font-geist">
         <h2 class="text-white text-base font-bold tracking-tight">Edit Collection</h2>
         <div class="space-y-3">
           <div class="flex flex-col gap-1.5">
@@ -227,7 +227,7 @@
 
     <!-- 2. Add Field Modal -->
     <div v-if="showFieldModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div class="w-[400px] bg-surface-container border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4">
+      <div class="w-[400px] max-w-[calc(100%-1.5rem)] bg-surface-container border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4">
         <h2 class="text-white text-base font-bold tracking-tight">Add Schema Field</h2>
         <div class="space-y-3">
           <div class="flex flex-col gap-1.5">
@@ -254,7 +254,7 @@
 
     <!-- 3. New/Edit Item Drawer Modal -->
     <div v-if="showItemDrawer" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-end">
-      <div class="w-[450px] h-full bg-surface-container border-l border-white/10 p-6 flex flex-col justify-between shadow-2xl animate-slide-in">
+      <div class="w-[450px] max-w-[calc(100%-1.5rem)] h-full bg-surface-container border-l border-white/10 p-6 flex flex-col justify-between shadow-2xl animate-slide-in">
         <div>
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-white text-base font-bold tracking-tight">{{ isEditingItem ? 'Edit Item' : 'New Item' }}</h2>
@@ -332,7 +332,7 @@
 
     <!-- 4. Schema Manager Modal -->
     <div v-if="showSchemaModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div class="w-[500px] bg-surface-container border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4">
+      <div class="w-[500px] max-w-[calc(100%-1.5rem)] bg-surface-container border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4">
         <div class="flex justify-between items-center">
           <h2 class="text-white text-base font-bold tracking-tight">Collection Schema Settings</h2>
           <button @click="showSchemaModal = false" class="text-on-surface-variant hover:text-white"><span class="material-symbols-outlined">close</span></button>
@@ -366,7 +366,7 @@
 
     <!-- Confirm Modal -->
     <div v-if="confirmState.open" class="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div class="w-[380px] bg-surface-container border border-white/10 rounded-2xl shadow-2xl p-5 space-y-4">
+      <div class="w-[380px] max-w-[calc(100%-1.5rem)] bg-surface-container border border-white/10 rounded-2xl shadow-2xl p-5 space-y-4">
         <div class="flex items-center gap-2.5 text-[#EF4444]">
           <span class="material-symbols-outlined">warning</span>
           <h3 class="text-sm font-bold text-white tracking-tight">{{ confirmState.title }}</h3>
@@ -381,7 +381,7 @@
 
     <!-- Help Modal (Documentation) -->
     <div v-if="showHelp || showFeedback" class="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div class="w-[420px] bg-surface-container border border-white/10 rounded-2xl shadow-2xl p-5 space-y-3">
+      <div class="w-[420px] max-w-[calc(100%-1.5rem)] bg-surface-container border border-white/10 rounded-2xl shadow-2xl p-5 space-y-3">
         <h3 class="text-white text-sm font-bold tracking-tight">{{ showHelp ? 'CMS Help' : 'Send Feedback' }}</h3>
         <p v-if="showHelp" class="text-xs text-on-surface-variant leading-relaxed">
           Create collections, configure fields (schema), and manage items. Asset fields hold image URLs or uploaded assets. Bound items connect directly to the editor's Dynamic List blocks.
@@ -397,6 +397,8 @@
 </template>
 
 <script setup>
+import { apiFetch } from '../api'
+
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import TopBar from '../components/editor/TopBar.vue'
@@ -457,7 +459,7 @@ const onCollectionChange = () => {
 // Fetch all collections
 const loadCollections = async () => {
   try {
-    const res = await fetch(`${store.apiBaseUrl}/projects/${projectId}/collections`)
+    const res = await apiFetch(`${store.apiBaseUrl}/projects/${projectId}/collections`)
     if (res.ok) {
       collections.value = await res.json()
       if (collections.value.length && !activeCollection.value) {
@@ -474,7 +476,7 @@ const selectCollection = async (collection) => {
   loadingItems.value = true
   items.value = []
   try {
-    const res = await fetch(`${store.apiBaseUrl}/collections/${collection.id}/items`)
+    const res = await apiFetch(`${store.apiBaseUrl}/collections/${collection.id}/items`)
     if (res.ok) {
       items.value = await res.json()
     }
@@ -500,7 +502,7 @@ const createCollection = async () => {
     { name: 'Item Name', type: 'plain-text', key: 'name' }
   ]
   try {
-    const res = await fetch(`${store.apiBaseUrl}/projects/${projectId}/collections`, {
+    const res = await apiFetch(`${store.apiBaseUrl}/projects/${projectId}/collections`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -538,7 +540,7 @@ const saveCollectionEdit = async () => {
     return
   }
   try {
-    const res = await fetch(`${store.apiBaseUrl}/projects/${projectId}/collections/${editingCol.value.id}`, {
+    const res = await apiFetch(`${store.apiBaseUrl}/projects/${projectId}/collections/${editingCol.value.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -571,7 +573,7 @@ const deleteCollection = async (col) => {
     message: `Delete ${col.name} collection and all its content?`,
     action: async () => {
       try {
-        const res = await fetch(`${store.apiBaseUrl}/projects/${projectId}/collections/${col.id}`, {
+        const res = await apiFetch(`${store.apiBaseUrl}/projects/${projectId}/collections/${col.id}`, {
           method: 'DELETE'
         })
         if (res.ok) {
@@ -600,7 +602,7 @@ const addField = async () => {
   const updatedFields = [...activeCollection.value.fields, { ...newField.value }]
   
   try {
-    const res = await fetch(`${store.apiBaseUrl}/projects/${projectId}/collections/${activeCollection.value.id}`, {
+    const res = await apiFetch(`${store.apiBaseUrl}/projects/${projectId}/collections/${activeCollection.value.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -630,7 +632,7 @@ const removeField = async (field) => {
     action: async () => {
       const updatedFields = activeCollection.value.fields.filter(f => f.key !== field.key)
       try {
-        const res = await fetch(`${store.apiBaseUrl}/projects/${projectId}/collections/${activeCollection.value.id}`, {
+        const res = await apiFetch(`${store.apiBaseUrl}/projects/${projectId}/collections/${activeCollection.value.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -682,13 +684,13 @@ const saveItem = async () => {
   try {
     let res
     if (isEditingItem.value) {
-      res = await fetch(`${store.apiBaseUrl}/collections/${activeCollection.value.id}/items/${activeItem.value.id}`, {
+      res = await apiFetch(`${store.apiBaseUrl}/collections/${activeCollection.value.id}/items/${activeItem.value.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(itemForm.value)
       })
     } else {
-      res = await fetch(`${store.apiBaseUrl}/collections/${activeCollection.value.id}/items`, {
+      res = await apiFetch(`${store.apiBaseUrl}/collections/${activeCollection.value.id}/items`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(itemForm.value)
@@ -717,7 +719,7 @@ const deleteItem = async (item) => {
     message: `Delete content item "${item.slug}"?`,
     action: async () => {
       try {
-        const res = await fetch(`${store.apiBaseUrl}/collections/${activeCollection.value.id}/items/${item.id}`, {
+        const res = await apiFetch(`${store.apiBaseUrl}/collections/${activeCollection.value.id}/items/${item.id}`, {
           method: 'DELETE'
         })
         if (res.ok) {
@@ -745,7 +747,7 @@ const attachItemImage = async (event, fieldKey) => {
   formData.append('file', file)
 
   try {
-    const response = await fetch(`${store.apiBaseUrl}/projects/${projectId}/assets`, {
+    const response = await apiFetch(`${store.apiBaseUrl}/projects/${projectId}/assets`, {
       method: 'POST',
       body: formData
     })

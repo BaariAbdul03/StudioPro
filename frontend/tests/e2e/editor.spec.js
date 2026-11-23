@@ -1,34 +1,147 @@
 import { test, expect } from '@playwright/test'
 
-test.describe('Visual Editor E2E Workspace Tests', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('http://127.0.0.1:5173/editor/1/1')
-  })
+test('owner saves, publishes, restores, exports, and unpublishes a draft', async ({ page }) => {
+  await page.goto('/')
+  await expect(page).toHaveURL('/login')
+  await page.getByLabel('Email').fill('owner@example.test')
+  await page.getByLabel('Password').fill(process.env.STUDIO_BROWSER_PASSWORD)
+  await page.getByRole('button', { name: 'Sign in' }).click()
+  await page.getByRole('link', { name: 'Continue editing' }).click()
 
-  test('should load editor workspace with main panels', async ({ page }) => {
-    await expect(page.locator('text="StudioPro"').first()).toBeVisible()
-    await expect(page.locator('text="Layers"')).toBeVisible()
-    await expect(page.locator('text="Blocks"').first()).toBeVisible()
-  })
+  const canvas = page.frameLocator('.gjs-frame')
+  const heading = canvas.locator('h1')
+  await expect(heading).toBeVisible()
+  const original = await heading.textContent()
+  await heading.dblclick()
+  await expect(heading).toBeEditable()
+  await heading.fill('Revised draft')
+  const saved = page.waitForResponse(response => response.request().method() === 'PUT' && /\/pages\/\d+$/.test(new URL(response.url()).pathname))
+  await canvas.locator('h2').first().click()
+  expect((await saved).ok()).toBeTruthy()
+  await expect(page.getByRole('status')).toHaveText('Draft saved', { timeout: 12000 })
+  await page.reload()
+  await expect(heading).toHaveText('Revised draft')
 
-  test('should allow switching tabs on the left sidebar', async ({ page }) => {
-    await page.click('text="Blocks"')
-    await expect(page.locator('#blocks-container')).toBeVisible()
+  await page.getByRole('button', { name: 'Version History' }).click()
+  await page.getByRole('button', { name: 'Create Checkpoint' }).click()
+  await expect(page.getByText('Checkpoint created.')).toBeVisible()
+  await page.getByRole('button', { name: 'Publish', exact: true }).click()
+  await expect(page.getByRole('status')).toHaveText('Page published')
+  const live = await page.getByRole('link', { name: 'View live page' }).getAttribute('href')
+  const published = await page.request.get(live)
+  expect(published.ok()).toBeTruthy()
+  expect(await published.text()).toContain('Revised draft')
 
-    await page.click('text="Assets"')
-    await expect(page.locator('text="Media Library"')).toBeVisible()
-  })
+  await heading.dblclick()
+  await heading.fill(original)
+  await canvas.locator('h2').first().click()
+  const draftPath = new URL(page.url()).pathname.replace('/editor/', '').split('/')
+  const draftRoute = '/api/projects/' + draftPath[0] + '/pages/' + draftPath[1]
+  await page.route(draftRoute, route => route.fulfill({ status: 503 }))
+  await page.getByRole('button', { name: 'Save draft' }).click()
+  await expect(page.getByRole('status')).toHaveText('Save failed. Retry.')
+  expect(await (await page.request.get(live)).text()).toContain('Revised draft')
+  await page.unroute(draftRoute)
+  await page.getByRole('button', { name: 'Save draft' }).click()
+  await expect(page.getByRole('status')).toHaveText('Draft saved')
+  expect(await (await page.request.get(live)).text()).toContain('Revised draft')
 
-  test('should open AI modal assistant', async ({ page }) => {
-    await page.click('button[title="Generate page with AI"]')
-    await expect(page.locator('text="Generate with Google Stitch"')).toBeVisible()
-    await page.click('button:has-text("Cancel")')
-  })
+  await page.getByRole('button', { name: 'Restore', exact: true }).first().click()
+  await expect(heading).toHaveText('Revised draft')
 
-  test('should support style manager controls', async ({ page }) => {
-    await expect(page.locator('text="Element Properties"')).toBeVisible()
-    await page.click('span.material-symbols-outlined:has-text("palette")')
-    await expect(page.locator('text="Layout"').first()).toBeVisible()
-    await expect(page.locator('text="Spacing"').first()).toBeVisible()
-  })
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Download static ZIP', exact: true }).first().click()
+  const exported = await downloadPromise
+  expect(exported.suggestedFilename()).toBe('fieldwork-home.zip')
+  expect(await exported.failure()).toBeNull()
+
+  await page.getByRole('button', { name: 'Unpublish', exact: true }).click()
+  await expect(page.getByRole('status')).toHaveText('Page unpublished')
+  expect((await page.request.get(live)).status()).toBe(404)
+})
+
+
+test('mobile registration uses the same light theme and creates a local session', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 })
+  await page.goto('/login')
+  const signInColor = await page.locator('main').evaluate(element => getComputedStyle(element).backgroundColor)
+  await page.getByRole('link', { name: 'Create a local account' }).click()
+  await expect(page.getByRole('heading', { name: 'Create an account' })).toBeVisible()
+  expect(await page.locator('main').evaluate(element => getComputedStyle(element).backgroundColor)).toBe(signInColor)
+  await page.getByLabel('Full name').fill('Mobile tester')
+  await page.getByLabel('Email').fill('mobile@example.test')
+  await page.getByLabel('Password', { exact: true }).fill(process.env.STUDIO_BROWSER_PASSWORD)
+  await page.getByLabel('Confirm password').fill(process.env.STUDIO_BROWSER_PASSWORD)
+  await page.getByRole('button', { name: 'Create account' }).click()
+  await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible()
+})
+
+test('local editor exposes page generation, copy rewrite, and SEO suggestions', async ({ page }) => {
+  await page.goto('/login')
+  await page.getByLabel('Email').fill('owner@example.test')
+  await page.getByLabel('Password').fill(process.env.STUDIO_BROWSER_PASSWORD)
+  await page.getByRole('button', { name: 'Sign in' }).click()
+  await page.getByRole('link', { name: 'Continue editing' }).click()
+  const canvas = page.frameLocator('.gjs-frame')
+
+  await canvas.locator('h1').click()
+  await page.getByRole('button', { name: 'Element Settings' }).click()
+  await page.getByLabel('Copy to rewrite').fill('Long and friendly copy for a quiet architecture studio.')
+  await page.getByRole('button', { name: 'Shorten', exact: true }).click()
+  await expect(page.getByText('Built-in suggestion ready.')).toBeVisible()
+  await page.getByRole('button', { name: 'Apply to Selected' }).click()
+  await expect(canvas.locator('h1')).toContainText('Long and friendly copy')
+
+  await page.getByRole('button', { name: 'SEO Settings' }).click()
+  await page.getByRole('button', { name: 'Generate SEO Suggestions' }).click()
+  await expect(page.getByText('Built-in suggestions applied.')).toBeVisible()
+
+  await page.getByRole('button', { name: 'Generate a page' }).click()
+  await page.getByLabel('Page prompt').fill('Create a landing page for a neighborhood bakery.')
+  await page.getByRole('button', { name: 'Generate draft' }).click()
+  await expect(page.getByText('Built-in draft ready.')).toBeVisible()
+  await page.getByRole('button', { name: 'Replace canvas' }).click()
+  await expect(canvas.locator('main')).toContainText(/bakery/i)
+})
+
+test('workspace navigation and screens fit a narrow mobile viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 })
+  await page.goto('/login')
+  await page.getByLabel('Email').fill('owner@example.test')
+  await page.getByLabel('Password').fill(process.env.STUDIO_BROWSER_PASSWORD)
+  await page.getByRole('button', { name: 'Sign in' }).click()
+  await page.getByRole('link', { name: 'CMS' }).click()
+  await expect(page.getByRole('button', { name: 'New Collection' })).toBeInViewport()
+  await page.getByRole('button', { name: 'New Collection' }).click()
+  await expect(page.getByRole('heading', { name: 'Create Collection' })).toBeInViewport()
+
+  for (const [section, apiPath] of [['Inventory', /\/products$/], ['Settings', /\/api\/projects$/], ['Templates', null]]) {
+    const next = await page.getByRole('navigation', { name: 'Workspace' }).getByRole('link', { name: section }).getAttribute('href')
+    const ready = apiPath && page.waitForResponse(response => apiPath.test(new URL(response.url()).pathname))
+    await page.goto(next)
+    if (ready) expect((await ready).ok()).toBeTruthy()
+    await expect(page.locator('h1')).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320)
+  }
+
+  await expect(page.getByText('20 of 20 templates')).toBeVisible()
+  const search = page.getByRole('searchbox', { name: 'Search templates' })
+  const firstTemplate = page.locator('article h3').first()
+  const name = await firstTemplate.textContent()
+  await search.fill(name)
+  await expect(page.locator('article')).toHaveCount(1)
+  await page.getByRole('button', { name: 'Use ' + name, exact: true }).click()
+  await expect(page.getByRole('dialog')).toContainText('This replaces the selected page')
+  await page.getByRole('button', { name: 'Replace draft' }).click()
+  await expect(page).toHaveURL(/\/editor\/\d+\/\d+/)
+  await expect(page.frameLocator('.gjs-frame').locator('body')).toContainText(/\S/)
+})
+
+test('an unreachable workspace shows the 503 page and can be retried', async ({ page }) => {
+  await page.route('/api/user', route => route.fulfill({ status: 503 }))
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: 'Workspace unavailable' })).toBeVisible()
+  await page.unroute('/api/user')
+  await page.getByRole('button', { name: 'Try again' }).click()
+  await expect(page).toHaveURL('/login')
 })

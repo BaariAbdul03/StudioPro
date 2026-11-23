@@ -23,6 +23,7 @@ class FormSubmissionController extends Controller
 
     public function store(Request $request, Project $project)
     {
+        abort_unless($project->user_id === $request->user()->id, 403);
         $validated = $request->validate([
             'page_id' => 'nullable|integer|exists:pages,id',
             'form_name' => 'nullable|string|max:255',

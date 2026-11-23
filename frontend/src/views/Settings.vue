@@ -1,12 +1,12 @@
 <template>
-  <div class="h-screen w-full flex flex-col bg-surface text-on-surface overflow-hidden select-none font-geist mesh-bg relative">
+  <div class="studio-light studio-management min-h-dvh md:h-dvh w-full flex flex-col bg-surface text-on-surface overflow-x-clip md:overflow-hidden font-geist mesh-bg relative">
     <TopBar />
 
-    <main class="flex-1 flex flex-col px-8 py-6 overflow-hidden min-h-0">
+    <main class="flex-1 flex flex-col px-4 py-5 md:px-8 md:py-6 md:overflow-hidden min-h-0">
       <div class="max-w-[1400px] mx-auto w-full flex flex-col flex-1 min-h-0">
         
         <!-- Header -->
-        <div class="flex items-end justify-between mb-6 shrink-0">
+        <div class="flex flex-wrap items-end justify-between gap-3 mb-6 shrink-0">
           <div>
             <div class="flex items-center gap-2 mb-1.5">
               <span class="font-mono text-[11px] text-on-surface-variant uppercase tracking-widest">Workspace</span>
@@ -19,9 +19,9 @@
         </div>
 
         <!-- 2 Column Layout -->
-        <div class="flex gap-6 flex-1 min-h-0">
+        <div class="flex flex-col md:flex-row gap-4 md:gap-6 flex-1 min-h-0">
           <!-- Left Sidebar -->
-          <div class="w-64 flex flex-col gap-4 shrink-0">
+          <div class="w-full md:w-64 flex flex-col gap-4 shrink-0">
             <div class="flex-1 bg-surface-container/70 backdrop-blur-[12px] border border-outline/30 rounded-2xl p-4 flex flex-col overflow-hidden">
               <!-- Preferences Section -->
               <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 px-1 mt-1">Preferences</div>
@@ -84,7 +84,7 @@
           </div>
 
           <!-- Right Content Panel -->
-          <div class="flex-1 bg-surface-container/70 backdrop-blur-[12px] border border-outline/30 rounded-2xl p-8 flex flex-col overflow-y-auto custom-scrollbar">
+          <div class="flex-1 min-w-0 bg-surface-container/70 backdrop-blur-[12px] border border-outline/30 rounded-2xl p-4 md:p-8 flex flex-col overflow-y-auto custom-scrollbar">
             
             <!-- Canvas Settings -->
             <div v-if="activeSection === 'canvas'" class="space-y-6 max-w-2xl">
@@ -98,7 +98,7 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-1.5">
                   <label class="settings-label">Default Canvas Width</label>
                   <input v-model="canvasForm.width" class="settings-input" type="text" placeholder="e.g. 1440px">
@@ -177,7 +177,7 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-1.5">
                   <label class="settings-label">Auto-Save Delay (seconds)</label>
                   <input v-model.number="editorForm.autoSaveDelay" class="settings-input" type="number" min="1" max="60">
@@ -261,7 +261,7 @@
 
               <!-- Profile Details Form -->
               <form @submit.prevent="saveProfile" class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div class="flex flex-col gap-1.5">
                     <label class="settings-label">Full Name</label>
                     <input v-model="profileForm.name" class="settings-input" type="text" required>
@@ -317,7 +317,7 @@
               <div class="flex items-start justify-between pb-4 border-b border-white/5">
                 <div>
                   <h2 class="text-base font-bold text-white mb-1">Project: {{ projectForm.name }}</h2>
-                  <p class="text-xs text-on-surface-variant">Modify name, URL slug, description, and deploy webhook configuration.</p>
+                  <p class="text-xs text-on-surface-variant">Manage the name, URL slug, and description.</p>
                 </div>
                 <div class="w-8 h-8 rounded-xl bg-[#10B981]/15 flex items-center justify-center shrink-0">
                   <span class="material-symbols-outlined text-[#10B981] text-[16px]">folder_open</span>
@@ -325,7 +325,7 @@
               </div>
 
               <form @submit.prevent="saveProjectSettings" class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div class="flex flex-col gap-1.5">
                     <label class="settings-label">Project Name *</label>
                     <input v-model="projectForm.name" class="settings-input" type="text" required>
@@ -339,12 +339,6 @@
                 <div class="flex flex-col gap-1.5">
                   <label class="settings-label">Description</label>
                   <textarea v-model="projectForm.description" rows="3" class="settings-input resize-none"></textarea>
-                </div>
-
-                <div class="flex flex-col gap-1.5">
-                  <label class="settings-label">Deploy Webhook URL</label>
-                  <input v-model="projectForm.settings.webhook" class="settings-input" type="url" placeholder="https://api.netlify.com/build_hooks/...">
-                  <span class="text-[10px] text-gray-600 mt-0.5">Called automatically when project pages are published.</span>
                 </div>
 
                 <div class="pt-2 border-t border-white/5">
@@ -386,13 +380,14 @@
 </template>
 
 <script setup>
+import { apiFetch } from '../api'
+
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useWorkspaceStore } from '../stores/workspace'
 import { useAuthStore } from '../stores/auth'
 import TopBar from '../components/editor/TopBar.vue'
 import Footer from '../components/Footer.vue'
-import axios from 'axios'
 
 const route = useRoute()
 const store = useWorkspaceStore()
@@ -486,7 +481,7 @@ const projectForm = ref({
   name: '',
   slug: '',
   description: '',
-  settings: { webhook: '' }
+  settings: {}
 })
 
 const showToast = (msg) => {
@@ -513,8 +508,9 @@ const loadPrefs = () => {
 const loadProjects = async () => {
   loadingProjects.value = true
   try {
-    const res = await axios.get(`${store.apiBaseUrl}/projects`)
-    projects.value = res.data
+    const res = await apiFetch(`${store.apiBaseUrl}/projects`)
+    if (!res.ok) throw new Error('Settings request failed')
+    projects.value = (await res.json())
     const routeProjId = Number(route.params.projectId)
     if (routeProjId) {
       const match = projects.value.find(p => p.id === routeProjId)
@@ -533,7 +529,7 @@ const selectProject = (project) => {
   projectForm.value.name = project.name
   projectForm.value.slug = project.slug
   projectForm.value.description = project.description || ''
-  projectForm.value.settings = project.settings || { webhook: '' }
+  projectForm.value.settings = project.settings || {}
 }
 
 const saveCanvasSettings = () => {
@@ -551,10 +547,11 @@ const saveProjectSettings = async () => {
   if (!activeProjectId.value) return
   savingProject.value = true
   try {
-    const res = await axios.put(`${store.apiBaseUrl}/projects/${activeProjectId.value}`, projectForm.value)
+    const res = await apiFetch(`${store.apiBaseUrl}/projects/${activeProjectId.value}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(projectForm.value) })
+    if (!res.ok) throw new Error('Settings request failed')
     showToast('Project details saved')
     const index = projects.value.findIndex(p => p.id === activeProjectId.value)
-    if (index !== -1) projects.value[index] = res.data
+    if (index !== -1) projects.value[index] = (await res.json())
   } catch (err) {
     console.error(err)
     showToast('Failed to save project settings')

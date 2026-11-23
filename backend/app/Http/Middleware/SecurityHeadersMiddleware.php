@@ -8,34 +8,26 @@ use Symfony\Component\HttpFoundation\Response;
 
 class SecurityHeadersMiddleware
 {
-    /**
-     * Set essential security headers on every response.
-     */
     public function handle(Request $request, Closure $next): Response
     {
-        $response = $next($request);
+        return self::apply($next($request));
+    }
 
-        $response->headers->set('X-Frame-Options', 'DENY');
-        $response->headers->set('X-Content-Type-Options', 'nosniff');
-        $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-
-        if (! $response->headers->has('Strict-Transport-Security')) {
-            $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-        }
+    public static function apply(Response $response): Response
+    {
+        $media = parse_url(config('filesystems.disks.media.endpoint') ?? '', PHP_URL_HOST);
+        $imageSource = $media && preg_match('/^[a-z0-9.-]+$/iD', $media) ? " https://{$media}" : '';
 
         if (! $response->headers->has('Content-Security-Policy')) {
-            $response->headers->set(
-                'Content-Security-Policy',
-                "default-src 'self'; " .
-                "script-src 'self' https://cdn.tailwindcss.com 'unsafe-inline'; " .
-                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; " .
-                "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; " .
-                "img-src 'self' data: https:; " .
-                "connect-src 'self' https://*.supabase.co https://app.grapesjs.com; " .
-                "frame-ancestors 'none'; " .
-                "form-action 'self'"
-            );
+            $response->headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:{$imageSource}; frame-src 'self' about: blob:; frame-ancestors 'none'; form-action 'self'; object-src 'none'; base-uri 'none'");
         }
+
+        $response->headers->add([
+            'Strict-Transport-Security' => 'max-age=31536000; includeSubDomains',
+            'X-Frame-Options' => 'DENY',
+            'X-Content-Type-Options' => 'nosniff',
+            'Referrer-Policy' => 'strict-origin-when-cross-origin',
+        ]);
 
         return $response;
     }

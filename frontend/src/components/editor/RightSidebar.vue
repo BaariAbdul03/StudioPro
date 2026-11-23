@@ -37,7 +37,7 @@
         @click="activeSubTab = 'style'"
         class="flex-1 py-2 flex justify-center hover:text-white border-b-2 transition cursor-pointer"
         :class="activeSubTab === 'style' ? 'bg-primary/10 text-primary border-primary' : 'border-transparent text-on-surface-variant hover:bg-[#2d3449]'"
-        title="Style Properties"
+        title="Style Properties" aria-label="Style Properties"
       >
         <span class="material-symbols-outlined">palette</span>
       </button>
@@ -46,52 +46,52 @@
         @click="activeSubTab = 'settings'"
         class="flex-1 py-2 flex justify-center hover:text-white border-b-2 transition cursor-pointer"
         :class="activeSubTab === 'settings' ? 'bg-primary/10 text-primary border-primary' : 'border-transparent text-on-surface-variant hover:bg-[#2d3449]'"
-        title="Element Settings"
+        title="Element Settings" aria-label="Element Settings"
       >
         <span class="material-symbols-outlined">settings_applications</span>
       </button>
 
       <button 
-        @click="activeSubTab = 'events'"
+        v-if="!demo" @click="activeSubTab = 'events'"
         class="flex-1 py-2 flex justify-center hover:text-white border-b-2 transition cursor-pointer"
         :class="activeSubTab === 'events' ? 'bg-primary/10 text-primary border-primary' : 'border-transparent text-on-surface-variant hover:bg-[#2d3449]'"
-        title="Interactions & Events"
+        title="Interactions & Events" aria-label="Interactions & Events"
       >
         <span class="material-symbols-outlined">bolt</span>
       </button>
 
       <button 
-        @click="activeSubTab = 'data'"
+        v-if="!demo" @click="activeSubTab = 'data'"
         class="flex-1 py-2 flex justify-center hover:text-white border-b-2 transition cursor-pointer"
         :class="activeSubTab === 'data' ? 'bg-primary/10 text-primary border-primary' : 'border-transparent text-on-surface-variant hover:bg-[#2d3449]'"
-        title="Data Binding"
+        title="Data Binding" aria-label="Data Binding"
       >
         <span class="material-symbols-outlined">database</span>
       </button>
 
       <button 
-        @click="activeSubTab = 'code'"
+        v-if="!demo" @click="activeSubTab = 'code'"
         class="flex-1 py-2 flex justify-center hover:text-white border-b-2 transition cursor-pointer"
         :class="activeSubTab === 'code' ? 'bg-primary/10 text-primary border-primary' : 'border-transparent text-on-surface-variant hover:bg-[#2d3449]'"
-        title="Custom Code"
+        title="Inspect HTML and CSS" aria-label="Inspect HTML and CSS"
       >
         <span class="material-symbols-outlined">fact_check</span>
       </button>
 
       <button 
-        @click="activeSubTab = 'seo'"
+        v-if="!demo" @click="activeSubTab = 'seo'"
         class="flex-1 py-2 flex justify-center hover:text-white border-b-2 transition cursor-pointer"
         :class="activeSubTab === 'seo' ? 'bg-primary/10 text-primary border-primary' : 'border-transparent text-on-surface-variant hover:bg-[#2d3449]'"
-        title="SEO Settings"
+        title="SEO Settings" aria-label="SEO Settings"
       >
         <span class="material-symbols-outlined">travel_explore</span>
       </button>
 
       <button 
-        @click="activeSubTab = 'versions'"
+        v-if="!demo" @click="activeSubTab = 'versions'"
         class="flex-1 py-2 flex justify-center hover:text-white border-b-2 transition cursor-pointer"
         :class="activeSubTab === 'versions' ? 'bg-primary/10 text-primary border-primary' : 'border-transparent text-on-surface-variant hover:bg-[#2d3449]'"
-        title="Version History"
+        title="Version History" aria-label="Version History"
       >
         <span class="material-symbols-outlined">history</span>
       </button>
@@ -415,17 +415,18 @@
 
       <!-- Settings Panel (Attributes and Visibility) -->
       <div v-show="activeSubTab === 'settings'" class="flex flex-col gap-6">
-        <section class="relative overflow-hidden rounded-lg border border-primary/30 bg-[#060e20] p-3 shadow-lg shadow-primary/5">
+        <section v-if="aiEnabled && !demo" class="relative overflow-hidden rounded-lg border border-primary/30 bg-[#060e20] p-3 shadow-lg shadow-primary/5">
           <div class="absolute left-0 top-0 h-full w-1 bg-primary"></div>
           <div class="flex items-center justify-between pl-2">
             <div class="flex items-center gap-2">
               <span class="material-symbols-outlined text-[18px] text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
-              <span class="text-[11px] font-bold uppercase tracking-wider text-primary">Google Stitch Active</span>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-primary">Copy assistant</span>
             </div>
             <button @click="loadSelectedCopy" class="text-[10px] font-bold text-on-surface-variant hover:text-white">Load</button>
           </div>
           <textarea
             v-model="aiCopyInput"
+            aria-label="Copy to rewrite"
             class="mt-3 h-20 w-full resize-none rounded border border-outline bg-editor-bg p-2 text-xs leading-relaxed text-on-surface outline-none focus:border-primary"
             placeholder="Select text on canvas or type copy here."
           ></textarea>
@@ -760,20 +761,8 @@
       </div>
 
       <!-- Code Panel -->
-      <div v-show="activeSubTab === 'code'" class="p-2 space-y-4">
+      <div v-if="!demo" v-show="activeSubTab === 'code'" class="p-2 space-y-4">
         <span class="text-white text-xs font-bold uppercase tracking-wider block">Export Code</span>
-        <section v-if="isCodeEmbedSelected" class="p-3 bg-[#060e20] border border-outline rounded space-y-3">
-          <div class="text-xs font-bold text-white uppercase tracking-wider">Code Embed</div>
-          <textarea v-model="codeEmbedHtml" class="w-full h-24 bg-editor-bg border border-outline rounded text-xs text-on-surface font-mono p-2 outline-none" placeholder="HTML"></textarea>
-          <textarea v-model="codeEmbedCss" class="w-full h-20 bg-editor-bg border border-outline rounded text-xs text-on-surface font-mono p-2 outline-none" placeholder="CSS"></textarea>
-          <textarea v-model="codeEmbedJs" class="w-full h-20 bg-editor-bg border border-outline rounded text-xs text-on-surface font-mono p-2 outline-none" placeholder="JavaScript"></textarea>
-          <button @click="applyCodeEmbed" class="w-full py-2 bg-primary text-white rounded-sm text-xs font-bold">Apply Embed</button>
-        </section>
-        <section class="p-3 bg-[#060e20] border border-outline rounded space-y-3">
-          <div class="text-xs font-bold text-white uppercase tracking-wider">Page Scripts</div>
-          <textarea v-model="headCode" class="w-full h-20 bg-editor-bg border border-outline rounded text-xs text-on-surface font-mono p-2 outline-none" placeholder="Custom <head> code"></textarea>
-          <textarea v-model="bodyCode" class="w-full h-20 bg-editor-bg border border-outline rounded text-xs text-on-surface font-mono p-2 outline-none" placeholder="Custom before </body> code"></textarea>
-        </section>
         <div class="p-3 bg-[#060e20] border border-outline rounded text-[10px] font-mono text-on-surface-variant space-y-2 overflow-x-auto">
           <div>// HTML Code Snippet</div>
           <pre class="text-[#10B981] whitespace-pre-wrap">{{ selectedHtml }}</pre>
@@ -784,7 +773,7 @@
 
       <!-- SEO Panel -->
       <div v-show="activeSubTab === 'seo'" class="flex flex-col gap-5">
-        <section class="relative overflow-hidden rounded-lg border border-primary/30 bg-[#060e20] p-3">
+        <section v-if="aiEnabled && !demo" class="relative overflow-hidden rounded-lg border border-primary/30 bg-[#060e20] p-3">
           <div class="absolute left-0 top-0 h-full w-1 bg-primary"></div>
           <div class="flex items-center justify-between pl-2">
             <div class="flex items-center gap-2">
@@ -870,6 +859,9 @@
 </template>
 
 <script setup>
+const props = defineProps({ demo: Boolean, aiEnabled: Boolean })
+import { apiFetch } from '../../api'
+
 import { ref, computed, reactive, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useWorkspaceStore } from '../../stores/workspace'
@@ -908,7 +900,6 @@ const isCartDrawerSelected = computed(() => {
   return selectedComponentType.value.toLowerCase() === 'cartdrawer' || selectedComponentName.value === 'CartDrawer'
 })
 
-const isCodeEmbedSelected = computed(() => selectedComponentType.value === 'code-embed')
 
 const selectedHtml = computed(() => {
   const comp = store.selectedComponent
@@ -950,9 +941,6 @@ const loopInteraction = ref(false)
 const openFontMenu = ref(false)
 const openWeightMenu = ref(false)
 
-const codeEmbedHtml = ref('')
-const codeEmbedCss = ref('')
-const codeEmbedJs = ref('')
 
 const versionLabel = ref('')
 const versionStatus = ref('')
@@ -981,8 +969,6 @@ const seoTitle = makeMetaComputed('seoTitle')
 const seoDescription = makeMetaComputed('seoDescription')
 const ogTitle = makeMetaComputed('ogTitle')
 const ogDescription = makeMetaComputed('ogDescription')
-const headCode = makeMetaComputed('headCode')
-const bodyCode = makeMetaComputed('bodyCode')
 const activeSlug = computed(() => store.activePage?.slug || 'home')
 const fontFamilyOptions = [
   { value: 'Geist, sans-serif', label: 'Geist Sans' },
@@ -1053,7 +1039,7 @@ const runCopyAssist = async (mode) => {
   try {
     const result = await store.rewriteAiCopy(projectId.value, { text, mode })
     aiCopyOutput.value = result.text || ''
-    aiCopyStatus.value = `${result.model} / ${result.provider}`
+    aiCopyStatus.value = result.provider === 'local-fallback' ? 'Built-in suggestion ready.' : 'Gemini suggestion ready.'
   } catch (err) {
     aiCopyStatus.value = 'AI copy assist failed.'
     aiCopyError.value = true
@@ -1061,13 +1047,10 @@ const runCopyAssist = async (mode) => {
 }
 
 const applyCopyAssist = () => {
-  const target = getTargetComponent()
-  if (!target || !aiCopyOutput.value) return
-  if (target.components) {
-    target.components(aiCopyOutput.value)
-  } else if (target.set) {
-    target.set('content', aiCopyOutput.value)
-  }
+  const target = store.selectedComponent
+  if (!target?.components || !aiCopyOutput.value) return
+  const plainText = aiCopyOutput.value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+  target.components(plainText)
   aiCopyInput.value = aiCopyOutput.value
   aiCopyStatus.value = 'Applied to selected element.'
   store.incrementStyleTrigger()
@@ -1088,9 +1071,6 @@ watch(() => store.selectedComponent, (comp) => {
     moveX.value = attrs['data-interaction-move-x'] || '20'
     moveY.value = attrs['data-interaction-move-y'] || '-10'
     interactionDelay.value = attrs['data-interaction-delay'] || '0'
-    codeEmbedHtml.value = attrs['data-code-html'] || ''
-    codeEmbedCss.value = attrs['data-code-css'] || ''
-    codeEmbedJs.value = attrs['data-code-js'] || ''
     aiCopyInput.value = extractSelectedCopy()
     aiCopyOutput.value = ''
     aiCopyStatus.value = aiCopyInput.value ? 'Selected copy loaded.' : ''
@@ -1098,9 +1078,6 @@ watch(() => store.selectedComponent, (comp) => {
     editId.value = ''
     editAlt.value = ''
     editHref.value = ''
-    codeEmbedHtml.value = ''
-    codeEmbedCss.value = ''
-    codeEmbedJs.value = ''
     aiCopyInput.value = ''
     aiCopyOutput.value = ''
     aiCopyStatus.value = ''
@@ -1225,26 +1202,6 @@ const setActionFromTimeline = (action, position) => {
   applyInteraction()
 }
 
-const escapeAttr = (value = '') => String(value)
-  .replaceAll('&', '&amp;')
-  .replaceAll('"', '&quot;')
-  .replaceAll('<', '&lt;')
-  .replaceAll('>', '&gt;')
-
-const applyCodeEmbed = () => {
-  if (!store.selectedComponent?.setAttributes || !isCodeEmbedSelected.value) return
-  const attrs = store.selectedComponent.getAttributes()
-  const srcdoc = `<!doctype html><html><head><style>body{margin:0;font-family:Geist,Arial,sans-serif}${codeEmbedCss.value}</style></head><body>${codeEmbedHtml.value}<script>${codeEmbedJs.value}<\\/script></body></html>`
-  store.selectedComponent.setAttributes({
-    ...attrs,
-    'data-code-html': codeEmbedHtml.value,
-    'data-code-css': codeEmbedCss.value,
-    'data-code-js': codeEmbedJs.value
-  })
-  store.selectedComponent.components(`<iframe sandbox="allow-scripts allow-same-origin" class="w-full min-h-[150px] border border-outline rounded bg-white" srcdoc="${escapeAttr(srcdoc)}"></iframe>`)
-  store.markDirty()
-}
-
 const applyDataBinding = () => {
   const target = getTargetComponent()
   if (!target?.setAttributes) return
@@ -1281,7 +1238,7 @@ const runSeoAssist = async () => {
       target.setAttributes({ ...target.getAttributes(), alt: altSuggestion })
     }
 
-    seoAssistStatus.value = `${result.model} / ${result.provider}. Suggestions applied.`
+    seoAssistStatus.value = result.provider === 'local-fallback' ? 'Built-in suggestions applied.' : 'Gemini suggestions applied.'
     store.markDirty()
   } catch (err) {
     seoAssistStatus.value = 'AI SEO optimizer failed.'
@@ -1354,12 +1311,17 @@ const downloadExport = async () => {
   versionStatus.value = 'Preparing static export...'
   try {
     await store.savePage(projectId.value, pageId.value)
-    versionStatus.value = 'Opening download...'
+    versionStatus.value = 'Preparing download...'
   } catch (err) {
     versionStatus.value = 'Exporting last saved version.'
   }
 
-  store.downloadStaticExport(projectId.value, pageId.value)
+  try {
+    await store.downloadStaticExport(projectId.value, pageId.value)
+    versionStatus.value = 'Static ZIP downloaded.'
+  } catch {
+    versionStatus.value = 'Could not download the static ZIP.'
+  }
 }
 
 const formatDate = (date) => {
@@ -1492,8 +1454,9 @@ watch(activeSubTab, (tab) => {
 })
 
 onMounted(async () => {
+  if (props.demo) return
   try {
-    const response = await fetch(`${store.apiBaseUrl}/projects/${projectId.value}/collections`)
+    const response = await apiFetch(`${store.apiBaseUrl}/projects/${projectId.value}/collections`)
     if (response.ok) cmsCollections.value = await response.json()
   } catch (err) {
     cmsCollections.value = []

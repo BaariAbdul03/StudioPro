@@ -8,25 +8,26 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:unit": "vitest run tests/unit/ --environment jsdom",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:public": "playwright test --config playwright.public.config.js"
   },
   "dependencies": {
-    "axios": "^1.18.1",
-    "grapesjs": "^0.23.2",
-    "pinia": "^3.0.4",
-    "vue": "^3.5.38",
-    "vue-router": "^5.1.0"
+    "dompurify": "3.5.0",
+    "grapesjs": "0.23.2",
+    "pinia": "3.0.4",
+    "vue": "3.5.46",
+    "vue-router": "5.1.0"
   },
   "devDependencies": {
-    "@pinia/testing": "^0.1.7",
-    "@playwright/test": "^1.61.1",
-    "@tailwindcss/postcss": "^4.3.1",
-    "@vitejs/plugin-vue": "^6.0.7",
-    "autoprefixer": "^10.5.1",
-    "jsdom": "^26.0.0",
-    "postcss": "^8.5.15",
-    "tailwindcss": "^4.3.1",
-    "vite": "^8.1.0",
-    "vitest": "^3.0.5"
+    "@pinia/testing": "0.1.7",
+    "@playwright/test": "1.61.1",
+    "@tailwindcss/postcss": "4.3.5",
+    "@vitejs/plugin-vue": "6.0.7",
+    "autoprefixer": "10.5.1",
+    "jsdom": "26.1.0",
+    "postcss": "8.5.33",
+    "tailwindcss": "4.3.1",
+    "vite": "8.3.8",
+    "vitest": "5.1.1"
   }
 }
