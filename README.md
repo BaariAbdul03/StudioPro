@@ -10,7 +10,7 @@ Requirements are PHP 8.4.28 or newer in the 8.4/8.5 series, Composer 2, and Node
 2. For SQLite, run `php artisan migrate`. For Neon, use the setup below. Run `php artisan studio:provision owner@example.test` to create an owner and sample using a private password. Start Laravel with `php artisan serve --no-reload` so that uploads can use the system temporary directory on Windows.
 3. From `frontend`, run `npm ci --ignore-scripts` and `npm run dev`. Open `http://127.0.0.1:5173` to sign in. Open `/demo` to edit the sample within your browser tab.
 
-The Vite development server proxies private API requests to Laravel at `127.0.0.1:8000`. Use `npm run build:portfolio` for Cloudflare Pages. See [Deploy StudioPro](DEPLOYMENT.md) for Northflank and Neon configuration.
+The Vite development server proxies private API requests to Laravel at `127.0.0.1:8000`. Use `npm run build:portfolio` for Cloudflare Pages. See [Deploy StudioPro](DEPLOYMENT.md) for full-stack hosting and Neon configuration.
 
 The public landing page and FAQ are available at `/welcome` in local development. The site information pages live at `/about`, `/privacy`, and `/terms`.
 

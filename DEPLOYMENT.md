@@ -1,4 +1,14 @@
-# Deploy the full workspace on Northflank
+# Deploy the full workspace
+
+## Hostless Free
+
+[Hostless](https://hostless.cloud/) documents a card-free, always-on free allowance. The repository's `hostless.yaml` sets one 256 MiB Docker replica with 0.1 vCPU and an HTTP health check at `/up`.
+
+Connect the StudioPro GitHub repository and select the deployment branch. Use the repository root as the build context and `backend/Dockerfile` as the Dockerfile. Set `APP_URL` to the assigned HTTPS origin and add the production and Neon variables listed below as Hostless runtime variables.
+
+Check `/up` and `/api/health` on the live URL, then verify workspace login, uploads, publishing, and ZIP export. Hostless builds and runs the container remotely. Docker Desktop is only needed for local testing.
+
+## Northflank Sandbox
 
 [Northflank Sandbox](https://northflank.com/pricing) provides two always-on services and two jobs on its free plan. One Docker service runs Vue, Laravel, authenticated APIs, exports, and published pages. Neon provides Postgres and object storage.
 
