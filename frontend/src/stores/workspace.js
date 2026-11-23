@@ -65,20 +65,27 @@ export const useWorkspaceStore = defineStore('workspace', {
   }),
   actions: {
     loadPreferences() {
-      const saved = localStorage.getItem('studiopro.preferences')
-      if (saved) {
-        try {
-          this.preferences = JSON.parse(saved)
-        } catch (e) {
-          console.error('Failed to load preferences')
+      try {
+        const saved = JSON.parse(localStorage.getItem('studiopro.preferences') || 'null')
+        if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return
+        for (const key of ['canvas', 'editor', 'appearance']) {
+          if (saved[key] && typeof saved[key] === 'object' && !Array.isArray(saved[key])) {
+            this.preferences[key] = { ...this.preferences[key], ...saved[key] }
+          }
         }
+      } catch {
+        // Use defaults when storage is unavailable or its contents are invalid.
       }
     },
     savePreferences(prefs) {
       if (prefs) {
         this.preferences = { ...this.preferences, ...prefs }
       }
-      localStorage.setItem('studiopro.preferences', JSON.stringify(this.preferences))
+      try {
+        localStorage.setItem('studiopro.preferences', JSON.stringify(this.preferences))
+      } catch {
+        // Preferences can still be used in this document.
+      }
       this.applyPreferences()
     },
     applyPreferences() {

@@ -73,14 +73,14 @@ onBeforeUnmount(clear)
 .responsive-review { width: min(1100px, calc(100vw - 1.5rem)); max-height: calc(100dvh - 1.5rem); }
 .responsive-review header { display: flex; align-items: start; justify-content: space-between; flex-wrap: wrap; gap: .8rem; }
 .responsive-review h2 { margin-bottom: .25rem; }
-.responsive-review p { color: #4b5670; }
+.responsive-review p { color: var(--studio-muted); }
 .review-checks { display: flex; flex-wrap: wrap; gap: .5rem; margin-block: 1.1rem; padding: 0; list-style: none; }
 .review-checks li { background: #e3f5ed; color: #143e32; border-radius: 5px; padding: .25rem .5rem; font-size: .85rem; }
 .review-checks [data-issue="true"] { background: #fff2d8; color: #603800; }
 .review-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; }
-.review-grid section { border: 1px solid #d5dce7; border-radius: 7px; overflow: hidden; }
-.review-grid h3 { display: flex; justify-content: space-between; gap: .5rem; padding: .45rem .6rem; background: #f6f8fc; font-size: .85rem; font-weight: 700; }
-.review-grid h3 span { color: #4b5670; font-weight: 400; }
+.review-grid section { border: 1px solid var(--studio-line); border-radius: 7px; overflow: hidden; }
+.review-grid h3 { display: flex; justify-content: space-between; gap: .5rem; padding: .45rem .6rem; background: var(--studio-well); font-size: .85rem; font-weight: 700; }
+.review-grid h3 span { color: var(--studio-muted); font-weight: 400; }
 .review-viewport { height: 280px; overflow: hidden; }
 .review-viewport iframe { display: block; max-width: none; transform-origin: top left; border: 0; }
 @media (max-width: 640px) { .review-grid { grid-template-columns: minmax(0, 1fr); } }

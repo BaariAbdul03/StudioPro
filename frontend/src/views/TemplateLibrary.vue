@@ -5,7 +5,7 @@
       <header class="workspace-heading template-heading">
         <div>
           <h1>Templates</h1>
-          <p>Preview an editable layout for your site, portfolio, blog, or store.</p>
+          <p>Browse page designs, preview the layout, and open it in the editor.</p>
         </div>
         <input v-model.trim="search" class="workspace-input" type="search" aria-label="Search templates" placeholder="Search templates…">
       </header>
@@ -19,7 +19,9 @@
       <div class="template-grid">
         <article v-for="template in filtered" :key="template.id" class="workspace-panel template-card">
           <button class="template-cover" type="button" :aria-label="'Open ' + template.name + ' preview'" @click="openPreview(template)">
-            <img :src="template.image" alt="" width="1000" height="625" loading="lazy" decoding="async">
+            <span class="template-cover-window">
+              <img :src="'/images/template-previews/' + template.id + '.jpg'" alt="" width="1100" height="660" loading="lazy" decoding="async">
+            </span>
           </button>
           <div class="template-card-body">
             <div>
@@ -157,7 +159,7 @@ async function applyTemplate() {
       const response = await apiFetch('/api/projects/' + projectId + '/pages/' + pageId.value, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...content, components: [], styles: [] })
+        body: JSON.stringify({ ...content, project_data: null, components: [], styles: [] })
       })
       if (!response.ok) throw new Error('Could not save the draft. Try again.')
     } else {

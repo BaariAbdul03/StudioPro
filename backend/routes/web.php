@@ -7,7 +7,7 @@ use App\Http\Controllers\PublishedPageController;
 Route::get('/', function () {
     $indexPath = public_path('index.html');
     if (file_exists($indexPath)) {
-        return file_get_contents($indexPath);
+        return response()->file($indexPath, ['Cache-Control' => 'private, no-store']);
     }
     return view('welcome');
 });
@@ -28,7 +28,7 @@ Route::get('/images/{file}', [PublishedPageController::class, 'bundledImage'])
 $workspace = function (int $status = 200) {
     $indexPath = public_path('index.html');
     if (file_exists($indexPath)) {
-        return response()->file($indexPath)->setStatusCode($status);
+        return response()->file($indexPath, ['Cache-Control' => 'private, no-store'])->setStatusCode($status);
     }
     abort(404);
 };

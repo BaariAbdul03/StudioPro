@@ -644,7 +644,7 @@ const exportCSV = () => {
   border-radius: 10px;
 }
 
-.stat-card { background: #fff; border: 1px solid #d8e0ec; min-width: 0; }
+.stat-card { background: var(--studio-panel); border: 1px solid var(--studio-line); min-width: 0; }
 
 
 

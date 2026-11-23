@@ -22,6 +22,11 @@
       </section>
 
       <div class="workspace-form-grid">
+        <section class="workspace-panel workspace-form-panel" aria-labelledby="appearance-title">
+          <h2 id="appearance-title">Appearance</h2>
+          <p>Saved in this browser.</p>
+          <div class="workspace-form"><ThemeControl /></div>
+        </section>
         <section class="workspace-panel workspace-form-panel" aria-labelledby="editor-preferences-title">
           <h2 id="editor-preferences-title">Editor preferences</h2>
           <p>Saved in this browser.</p>
@@ -43,10 +48,7 @@
             <label v-for="[key, label] in canvasChecks" :key="key" class="workspace-check">
               <input v-model="canvas[key]" type="checkbox">{{ label }}
             </label>
-            <label>Canvas width<input v-model.trim="canvas.width" placeholder="1440px" required></label>
-            <label>Canvas height<input v-model.trim="canvas.height" placeholder="auto" required></label>
             <label>Grid size (px)<input v-model.number="canvas.gridSize" type="number" min="4" max="64" required></label>
-            <label>Default zoom (%)<input v-model.number="canvas.zoom" type="number" min="25" max="200" required></label>
             <button class="studio-button" type="submit">Save canvas preferences</button>
             <p v-if="preferenceStatus.canvas" role="status">{{ preferenceStatus.canvas }}</p>
           </form>
@@ -60,6 +62,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import TopBar from '../components/editor/TopBar.vue'
+import ThemeControl from '../components/ThemeControl.vue'
 import { apiFetch } from '../api'
 import { useProjectList } from '../stores/projects'
 import { useWorkspaceStore } from '../stores/workspace'
@@ -71,8 +74,8 @@ store.loadPreferences()
 const canvas = reactive({ ...store.preferences.canvas })
 const editor = reactive({ ...store.preferences.editor })
 const preferenceStatus = reactive({ canvas: '', editor: '' })
-const canvasChecks = [['showGrid', 'Show grid'], ['snapToGrid', 'Snap to grid'], ['showRulers', 'Show rulers'], ['highlightSelected', 'Highlight selected components']]
-const editorChecks = [['autoSave', 'Autosave drafts'], ['realTimePreview', 'Live preview'], ['showLabels', 'Show component labels'], ['compactMode', 'Compact interface'], ['tooltips', 'Show tooltips']]
+const canvasChecks = [['showGrid', 'Show grid around the page']]
+const editorChecks = [['autoSave', 'Autosave drafts'], ['compactMode', 'Compact interface']]
 const project = ref(null)
 const loading = ref(Boolean(projectId))
 const saving = ref(false)

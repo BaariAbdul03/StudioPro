@@ -50,6 +50,10 @@ class PageSnapshot
 
         foreach ($xpath->query('//img') as $image) {
             $source = $image->getAttribute('src');
+            if (preg_match('~\Ahttps://images\.unsplash\.com/photo-(\d+-[a-f0-9]+)(?:\?[^#]*)?\z~i', $source, $photo)) {
+                $source = '/images/template-'.strtolower($photo[1]).'.webp';
+                $image->setAttribute('src', $source);
+            }
             if (preg_match('~\A/api/projects/'.$project->id.'/assets/(\d+)/file\z~', $source, $matches)) {
                 $id = (int) $matches[1];
                 $asset = $library[$id] ??= $project->assets()->find($id) ?: false;

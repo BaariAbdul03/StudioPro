@@ -1,15 +1,17 @@
 <template>
-  <aside class="w-[280px] bg-surface-container border-l border-outline flex flex-col z-40 shrink-0 absolute md:relative right-0 top-0 bottom-0 h-full font-geist">
+  <aside id="editor-properties" aria-label="Element properties" class="editor-properties w-[280px] bg-surface-container border-l border-outline flex flex-col z-40 shrink-0 absolute md:relative right-0 top-0 bottom-0 h-full font-geist">
     <!-- Header -->
     <div class="p-4 border-b border-outline flex items-center justify-between">
       <div>
         <span class="text-white text-xs font-bold uppercase tracking-wider text-on-surface">Element Properties</span>
         <p class="text-primary text-[11px] font-mono font-bold mt-1 uppercase tracking-wider bg-primary/10 px-2 py-0.5 rounded inline-block">
-          Selected: {{ store.selectedComponent ? store.selectedComponent.get('type') : 'wrapper' }}
+          Selected: {{ store.selectedComponent ? selectedComponentName || 'Element' : 'Page' }}
         </p>
       </div>
-      <button @click="showPanelMenu = !showPanelMenu" class="relative text-on-surface-variant cursor-pointer hover:text-white">
-        <span class="material-symbols-outlined">more_vert</span>
+      <div class="relative">
+        <button class="text-on-surface-variant cursor-pointer hover:text-white" :aria-expanded="showPanelMenu" aria-label="Element actions" @click="showPanelMenu = !showPanelMenu">
+          <span class="material-symbols-outlined" aria-hidden="true">more_vert</span>
+        </button>
         <div v-if="showPanelMenu" class="absolute right-0 top-7 w-44 bg-[#060e20] border border-outline rounded shadow-xl z-50 py-1 text-left">
           <button @click.stop="selectWrapper" class="w-full px-3 py-2 text-xs text-on-surface hover:bg-[#2d3449] flex items-center gap-2">
             <span class="material-symbols-outlined text-[14px]">select_all</span>Select Page
@@ -21,7 +23,7 @@
             <span class="material-symbols-outlined text-[14px]">delete</span>Delete
           </button>
         </div>
-      </button>
+      </div>
       <button
         @click="store.setRightSidebarCollapsed(true)"
         class="ml-2 h-7 w-7 rounded bg-editor-bg border border-outline text-on-surface-variant hover:text-white hover:border-primary flex items-center justify-center"
@@ -34,7 +36,7 @@
     <!-- Property Tabs -->
     <div class="flex border-b border-outline">
       <button 
-        @click="activeSubTab = 'style'"
+        @click="activeSubTab = 'style'" :aria-pressed="activeSubTab === 'style'"
         class="flex-1 py-2 flex justify-center hover:text-white border-b-2 transition cursor-pointer"
         :class="activeSubTab === 'style' ? 'bg-primary/10 text-primary border-primary' : 'border-transparent text-on-surface-variant hover:bg-[#2d3449]'"
         title="Style Properties" aria-label="Style Properties"
@@ -43,7 +45,7 @@
       </button>
       
       <button 
-        @click="activeSubTab = 'settings'"
+        @click="activeSubTab = 'settings'" :aria-pressed="activeSubTab === 'settings'"
         class="flex-1 py-2 flex justify-center hover:text-white border-b-2 transition cursor-pointer"
         :class="activeSubTab === 'settings' ? 'bg-primary/10 text-primary border-primary' : 'border-transparent text-on-surface-variant hover:bg-[#2d3449]'"
         title="Element Settings" aria-label="Element Settings"
@@ -52,7 +54,7 @@
       </button>
 
       <button 
-        v-if="!demo" @click="activeSubTab = 'events'"
+        v-if="!demo" @click="activeSubTab = 'events'" :aria-pressed="activeSubTab === 'events'"
         class="flex-1 py-2 flex justify-center hover:text-white border-b-2 transition cursor-pointer"
         :class="activeSubTab === 'events' ? 'bg-primary/10 text-primary border-primary' : 'border-transparent text-on-surface-variant hover:bg-[#2d3449]'"
         title="Interactions & Events" aria-label="Interactions & Events"
@@ -61,7 +63,7 @@
       </button>
 
       <button 
-        v-if="!demo" @click="activeSubTab = 'data'"
+        v-if="!demo" @click="activeSubTab = 'data'" :aria-pressed="activeSubTab === 'data'"
         class="flex-1 py-2 flex justify-center hover:text-white border-b-2 transition cursor-pointer"
         :class="activeSubTab === 'data' ? 'bg-primary/10 text-primary border-primary' : 'border-transparent text-on-surface-variant hover:bg-[#2d3449]'"
         title="Data Binding" aria-label="Data Binding"
@@ -70,7 +72,7 @@
       </button>
 
       <button 
-        v-if="!demo" @click="activeSubTab = 'code'"
+        v-if="!demo" @click="activeSubTab = 'code'" :aria-pressed="activeSubTab === 'code'"
         class="flex-1 py-2 flex justify-center hover:text-white border-b-2 transition cursor-pointer"
         :class="activeSubTab === 'code' ? 'bg-primary/10 text-primary border-primary' : 'border-transparent text-on-surface-variant hover:bg-[#2d3449]'"
         title="Inspect HTML and CSS" aria-label="Inspect HTML and CSS"
@@ -79,7 +81,7 @@
       </button>
 
       <button 
-        v-if="!demo" @click="activeSubTab = 'seo'"
+        v-if="!demo" @click="activeSubTab = 'seo'" :aria-pressed="activeSubTab === 'seo'"
         class="flex-1 py-2 flex justify-center hover:text-white border-b-2 transition cursor-pointer"
         :class="activeSubTab === 'seo' ? 'bg-primary/10 text-primary border-primary' : 'border-transparent text-on-surface-variant hover:bg-[#2d3449]'"
         title="SEO Settings" aria-label="SEO Settings"
@@ -88,7 +90,7 @@
       </button>
 
       <button 
-        v-if="!demo" @click="activeSubTab = 'versions'"
+        v-if="!demo" @click="activeSubTab = 'versions'" :aria-pressed="activeSubTab === 'versions'"
         class="flex-1 py-2 flex justify-center hover:text-white border-b-2 transition cursor-pointer"
         :class="activeSubTab === 'versions' ? 'bg-primary/10 text-primary border-primary' : 'border-transparent text-on-surface-variant hover:bg-[#2d3449]'"
         title="Version History" aria-label="Version History"
@@ -261,8 +263,8 @@
             <div class="flex flex-col gap-1">
               <label class="text-[9px] text-on-surface-variant uppercase font-bold tracking-wider">Width</label>
               <div class="flex items-center bg-editor-bg border border-outline rounded h-7 focus-within:border-primary overflow-hidden">
-                <input v-model="widthValue" placeholder="100" class="min-w-0 flex-1 bg-transparent border-none text-on-surface text-xs py-1.5 px-2 focus:outline-none font-semibold font-mono" />
-                <select v-model="widthUnit" @change="commitUnitSize('width')" class="editor-select w-12 h-full border-l border-outline bg-[#060e20] text-on-surface-variant text-[10px] font-bold outline-none">
+                <input v-model="widthValue" aria-label="Width" inputmode="decimal" placeholder="100" class="min-w-0 flex-1 bg-transparent border-none text-on-surface text-xs py-1.5 px-2 focus:outline-none font-semibold font-mono" />
+                <select v-model="widthUnit" aria-label="Width unit" @change="commitUnitSize('width')" class="editor-select w-12 h-full border-l border-outline bg-[#060e20] text-on-surface-variant text-[10px] font-bold outline-none">
                   <option value="%">%</option>
                   <option value="px">px</option>
                   <option value="vw">vw</option>
@@ -274,8 +276,8 @@
             <div class="flex flex-col gap-1">
               <label class="text-[9px] text-on-surface-variant uppercase font-bold tracking-wider">Height</label>
               <div class="flex items-center bg-editor-bg border border-outline rounded h-7 focus-within:border-primary overflow-hidden">
-                <input v-model="heightValue" placeholder="Auto" class="min-w-0 flex-1 bg-transparent border-none text-on-surface text-xs py-1.5 px-2 focus:outline-none font-semibold font-mono" />
-                <select v-model="heightUnit" @change="commitUnitSize('height')" class="editor-select w-12 h-full border-l border-outline bg-[#060e20] text-on-surface-variant text-[10px] font-bold outline-none">
+                <input v-model="heightValue" aria-label="Height" inputmode="decimal" placeholder="Auto" class="min-w-0 flex-1 bg-transparent border-none text-on-surface text-xs py-1.5 px-2 focus:outline-none font-semibold font-mono" />
+                <select v-model="heightUnit" aria-label="Height unit" @change="commitUnitSize('height')" class="editor-select w-12 h-full border-l border-outline bg-[#060e20] text-on-surface-variant text-[10px] font-bold outline-none">
                   <option value="auto">auto</option>
                   <option value="px">px</option>
                   <option value="%">%</option>
@@ -351,7 +353,7 @@
               <div>
                 <label class="text-[10px] font-bold text-on-surface-variant mb-1 block uppercase tracking-wide">Size</label>
                 <div class="flex items-center bg-[#060e20] rounded border border-outline px-2 focus-within:border-primary">
-                  <input v-model="fontSize" placeholder="16" class="w-full bg-transparent border-none text-right text-white text-xs py-2 focus:outline-none font-semibold font-mono" />
+                  <input v-model="fontSize" aria-label="Font size" placeholder="16" class="w-full bg-transparent border-none text-right text-white text-xs py-2 focus:outline-none font-semibold font-mono" />
                   <span class="text-on-surface-variant pl-1 text-[10px] font-bold">PX</span>
                 </div>
               </div>
@@ -447,7 +449,7 @@
           <div class="space-y-1.5">
             <label class="text-on-surface-variant text-[10px] font-bold uppercase tracking-wider">Element ID</label>
             <input 
-              v-model="elementId" 
+              v-model="elementId" aria-label="Element ID"
               class="w-full h-7 bg-editor-bg border border-outline focus:border-primary focus:ring-1 focus:ring-[#2E62FF] rounded-sm text-xs font-mono text-on-surface px-2 outline-none" 
               type="text" 
             />
@@ -456,7 +458,7 @@
           <div class="space-y-1.5">
             <label class="text-on-surface-variant text-[10px] font-bold uppercase tracking-wider">Alt Text</label>
             <textarea 
-              v-model="elementAlt" 
+              v-model="elementAlt" aria-label="Alt text"
               class="w-full h-16 bg-editor-bg border border-outline focus:border-primary focus:ring-1 focus:ring-[#2E62FF] rounded-sm text-xs text-on-surface px-2 py-1 outline-none resize-none font-semibold"
             ></textarea>
           </div>
@@ -468,7 +470,7 @@
                 <span class="material-symbols-outlined text-[14px] text-on-surface">link</span>
               </div>
               <input 
-                v-model="elementHref" 
+                v-model="elementHref" aria-label="Link URL"
                 class="flex-1 h-7 bg-editor-bg border border-outline focus:border-primary focus:ring-0 rounded-r-sm text-xs font-mono text-on-surface px-2 outline-none" 
                 placeholder="https://" 
                 type="text" 
@@ -477,65 +479,19 @@
           </div>
         </div>
 
-        <!-- Responsive Visibility Section -->
-        <div class="space-y-4">
-          <label class="text-on-surface-variant text-[10px] font-bold uppercase tracking-wider flex items-center justify-between">
-            Responsive Visibility
-            <span class="material-symbols-outlined text-sm">visibility</span>
+        <fieldset :disabled="!store.selectedComponent" class="editor-visibility">
+          <legend>Responsive visibility</legend>
+          <label v-for="width in visibilityWidths" :key="width">
+            <input type="checkbox" :checked="!hiddenWidths.includes(width)" @change="setVisibility(width, $event.target.checked)">
+            {{ width }}
           </label>
-          
-          <div class="space-y-2">
-            <!-- Desktop Toggle -->
-            <div class="flex items-center justify-between p-2 bg-surface-container-light border border-outline rounded-sm">
-              <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-on-surface-variant text-sm">desktop_windows</span>
-                <span class="text-xs font-bold text-on-surface uppercase tracking-wide">Desktop</span>
-              </div>
-              <div 
-                @click="visibilityDesktop = !visibilityDesktop"
-                class="w-8 h-4 rounded-full relative cursor-pointer transition-colors"
-                :class="visibilityDesktop ? 'bg-primary' : 'bg-[#434656]'"
-              >
-                <div class="absolute top-1 w-2 h-2 bg-white rounded-full transition-all" :class="visibilityDesktop ? 'right-1' : 'left-1'"></div>
-              </div>
-            </div>
+        </fieldset>
 
-            <!-- Tablet Toggle -->
-            <div class="flex items-center justify-between p-2 bg-surface-container-light border border-outline rounded-sm">
-              <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-on-surface-variant text-sm">tablet_mac</span>
-                <span class="text-xs font-bold text-on-surface uppercase tracking-wide">Tablet</span>
-              </div>
-              <div 
-                @click="visibilityTablet = !visibilityTablet"
-                class="w-8 h-4 rounded-full relative cursor-pointer transition-colors"
-                :class="visibilityTablet ? 'bg-primary' : 'bg-[#434656]'"
-              >
-                <div class="absolute top-1 w-2 h-2 bg-white rounded-full transition-all" :class="visibilityTablet ? 'right-1' : 'left-1'"></div>
-              </div>
-            </div>
-
-            <!-- Mobile Toggle -->
-            <div class="flex items-center justify-between p-2 bg-surface-container-light border border-outline rounded-sm">
-              <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-on-surface-variant text-sm">smartphone</span>
-                <span class="text-xs font-bold text-on-surface uppercase tracking-wide">Mobile</span>
-              </div>
-              <div 
-                @click="visibilityMobile = !visibilityMobile"
-                class="w-8 h-4 rounded-full relative cursor-pointer transition-colors"
-                :class="visibilityMobile ? 'bg-primary' : 'bg-[#434656]'"
-              >
-                <div class="absolute top-1 w-2 h-2 bg-white rounded-full transition-all" :class="visibilityMobile ? 'right-1' : 'left-1'"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
+        <p v-if="attributeError" role="alert">{{ attributeError }}</p>
         <!-- Discard / Apply Footer Buttons -->
         <div class="pt-4 flex gap-2 border-t border-outline">
-          <button @click="discardAttributes" class="flex-1 py-1.5 border border-outline rounded text-xs font-bold uppercase tracking-wider text-white hover:bg-[#2d3449] transition-colors cursor-pointer text-center">Discard</button>
-          <button @click="applyAttributes" class="flex-1 py-1.5 bg-primary text-white rounded text-xs font-bold uppercase tracking-wider hover:brightness-110 transition-all cursor-pointer text-center">Apply</button>
+          <button @click="discardAttributes" :disabled="!store.selectedComponent" class="flex-1 py-1.5 border border-outline rounded text-xs font-bold uppercase tracking-wider text-white hover:bg-[#2d3449] transition-colors cursor-pointer text-center">Discard</button>
+          <button @click="applyAttributes" :disabled="!store.selectedComponent" class="flex-1 py-1.5 bg-primary text-white rounded text-xs font-bold uppercase tracking-wider hover:brightness-110 transition-all cursor-pointer text-center">Apply</button>
         </div>
       </div>
 
@@ -868,8 +824,8 @@ import { useWorkspaceStore } from '../../stores/workspace'
 
 const store = useWorkspaceStore()
 const route = useRoute()
-const projectId = computed(() => route.params.projectId || 1)
-const pageId = computed(() => route.params.pageId || 1)
+const projectId = computed(() => route.params.projectId)
+const pageId = computed(() => route.params.pageId)
 
 const activeSubTab = computed({
   get: () => store.activeRightTab,
@@ -923,11 +879,37 @@ const selectedCss = computed(() => {
 const editId = ref('')
 const editAlt = ref('')
 const editHref = ref('')
+const attributeError = ref('')
 
-// Responsive toggles state
-const visibilityDesktop = ref(true)
-const visibilityTablet = ref(true)
-const visibilityMobile = ref(false)
+const visibilityWidths = ['desktop', 'tablet', 'mobile']
+const hiddenWidths = computed(() => {
+  void store.styleTrigger
+  const classes = store.selectedComponent?.getClasses() || []
+  return visibilityWidths.filter(width => classes.includes('studio-hide-' + width))
+})
+
+function setVisibility(width, visible) {
+  const target = store.selectedComponent
+  if (!target) return
+  const className = 'studio-hide-' + width
+  if (visible) target.removeClass(className)
+  else target.addClass(className)
+  store.incrementStyleTrigger()
+  store.markDirty()
+}
+
+function setStyleProperty(target, property, value) {
+  if (value && !CSS.supports(property, value)) return
+  const { relatives } = store.editor.Components.getSymbolInfo(target)
+  for (const component of new Set([target, ...relatives])) {
+    const styles = { ...component.getStyle() }
+    if (value) styles[property] = value
+    else delete styles[property]
+    component.setStyle(styles)
+  }
+  store.incrementStyleTrigger()
+  store.markDirty()
+}
 
 // Interactions move variables (local mock state)
 const moveDuration = ref('400')
@@ -1059,6 +1041,7 @@ const applyCopyAssist = () => {
 
 // Load attributes from selected component when GrapesJS selection changes
 watch(() => store.selectedComponent, (comp) => {
+  attributeError.value = ''
   if (comp?.getAttributes) {
     editId.value = comp.getId?.() || ''
     const attrs = comp.getAttributes()
@@ -1099,6 +1082,7 @@ const elementHref = computed({
 })
 
 const discardAttributes = () => {
+  attributeError.value = ''
   if (store.selectedComponent?.getAttributes) {
     editId.value = store.selectedComponent.getId?.() || ''
     const attrs = store.selectedComponent.getAttributes()
@@ -1108,22 +1092,22 @@ const discardAttributes = () => {
 }
 
 const applyAttributes = () => {
-  const target = getTargetComponent()
-  if (!target?.setAttributes) return
-  
-  // Set ID
-  if (editId.value && target.setId) {
-    target.setId(editId.value)
+  const target = store.selectedComponent
+  if (!target) return
+  attributeError.value = ''
+  const id = editId.value.trim()
+  const href = editHref.value.trim()
+  if (id && !/^[a-z_][a-z0-9_:-]*$/i.test(id)) {
+    attributeError.value = 'Start the element ID with a letter or underscore. Use letters, numbers, hyphens, or underscores.'
+    return
   }
-  
-  // Set Attributes (alt, href)
-  const currentAttrs = target.getAttributes()
-  target.setAttributes({
-    ...currentAttrs,
-    alt: editAlt.value,
-    href: editHref.value
-  })
-  
+  if (href && !/^(?:https:\/\/|\/(?!\/)|#)/i.test(href)) {
+    attributeError.value = 'Use an HTTPS link, a site path, or a page anchor.'
+    return
+  }
+  if (id && target.getId() !== id) target.setId(id)
+  if (target.is('image') || editAlt.value) target.addAttributes({ alt: editAlt.value })
+  if (target.getAttributes().href !== undefined || href) target.addAttributes({ href })
   store.incrementStyleTrigger()
   store.markDirty()
 }
@@ -1347,13 +1331,7 @@ const makeStyleComputed = (prop) => {
         else if (['height', 'font-size', 'border-radius', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left'].includes(prop)) formattedVal += 'px'
       }
       
-      const currentStyles = target.getStyle()
-      target.setStyle({
-        ...currentStyles,
-        [prop]: formattedVal
-      })
-      store.incrementStyleTrigger()
-      store.markDirty()
+      setStyleProperty(target, prop, formattedVal)
     }
   })
 }
@@ -1361,7 +1339,7 @@ const makeStyleComputed = (prop) => {
 const parseCssUnit = (value = '', fallbackUnit = 'px') => {
   const normalized = String(value || '').trim()
   if (!normalized) return { value: '', unit: fallbackUnit }
-  if (normalized === 'auto') return { value: 'Auto', unit: 'auto' }
+  if (normalized === 'auto') return { value: '', unit: 'auto' }
   const match = normalized.match(/^(-?\d+(?:\.\d+)?)([a-z%]*)$/i)
   if (!match) return { value: normalized, unit: fallbackUnit }
   return { value: match[1], unit: match[2] || fallbackUnit }
@@ -1379,12 +1357,7 @@ const setUnitStyle = (prop, value, unit) => {
     : raw
       ? (/^-?\d+(\.\d+)?$/.test(raw) ? `${raw}${unit}` : raw)
       : ''
-  target.setStyle({
-    ...target.getStyle(),
-    [prop]: formatted
-  })
-  store.incrementStyleTrigger()
-  store.markDirty()
+  setStyleProperty(target, prop, formatted)
 }
 
 const makeUnitValueComputed = (prop, unitRef, fallbackUnit) => computed({
@@ -1393,15 +1366,15 @@ const makeUnitValueComputed = (prop, unitRef, fallbackUnit) => computed({
     const target = getTargetComponent()
     if (!target?.getStyle) return ''
     const parsed = parseCssUnit(target.getStyle()[prop], fallbackUnit)
-    unitRef.value = parsed.unit
     return parsed.value
   },
   set: (value) => setUnitStyle(prop, value, unitRef.value)
 })
 
 const commitUnitSize = (prop) => {
-  if (prop === 'width') setUnitStyle('width', widthValue.value, widthUnit.value)
-  if (prop === 'height') setUnitStyle('height', heightValue.value, heightUnit.value)
+  const value = prop === 'width' ? widthValue.value : heightValue.value
+  const unit = prop === 'width' ? widthUnit.value : heightUnit.value
+  if (value || unit === 'auto') setUnitStyle(prop, value, unit)
 }
 
 // Spacing properties
@@ -1422,6 +1395,12 @@ const alignItems = makeStyleComputed('align-items')
 // Size properties
 const widthValue = makeUnitValueComputed('width', widthUnit, '%')
 const heightValue = makeUnitValueComputed('height', heightUnit, 'px')
+watch([() => store.selectedComponent, () => store.styleTrigger], ([selected], previous) => {
+  const styles = getTargetComponent()?.getStyle() || {}
+  const selectionChanged = selected !== previous?.[0]
+  if (styles.width || selectionChanged) widthUnit.value = parseCssUnit(styles.width, '%').unit
+  if (styles.height || selectionChanged) heightUnit.value = parseCssUnit(styles.height, 'px').unit
+}, { immediate: true })
 
 // Typography properties
 const fontFamily = makeStyleComputed('font-family')
@@ -1493,12 +1472,9 @@ onUnmounted(() => {
 .gjs-field input {
   color: #fff !important;
 }
-.editor-select,
-.editor-select option,
-select,
-select option {
-  background-color: #0B0E14 !important;
-  color: #dae2fd !important;
+.studio-editor .editor-select {
+  background-color: var(--studio-well);
+  color: var(--studio-fg);
 }
 .custom-scrollbar {
   scrollbar-width: none;

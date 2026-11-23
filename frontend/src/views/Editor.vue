@@ -9,24 +9,41 @@
       </div>
       <div class="studio-actions editor-actions">
         <button class="studio-button" :disabled="!ready" @click="previewPage">{{ preview ? 'Exit preview' : 'Preview' }}</button>
-        <button class="studio-button" :disabled="!ready" @click="openReview">Responsive review</button>
-        <button v-if="demo" class="studio-button" :disabled="!ready" @click="resetDialog.showModal()">Reset</button>
-        <template v-else>
-          <button v-if="aiEnabled" class="studio-button" :disabled="!ready || busy" @click="showGenerator = true">Generate a page</button>
+        <button v-if="!compactToolbar" class="studio-button" :disabled="!ready" @click="openReview">Responsive review</button>
+        <button v-if="demo && !compactToolbar" class="studio-button" :disabled="!ready" @click="resetDialog.showModal()">Reset</button>
+        <template v-if="!demo">
+          <button v-if="aiEnabled && !compactToolbar" class="studio-button" :disabled="!ready || busy" @click="showGenerator = true">Generate a page</button>
           <button class="studio-button" :disabled="!ready || busy" @click="saveDraft">Save draft</button>
-          <button class="studio-button primary" :disabled="!ready || busy" @click="publish(true)">
+          <button v-if="!compactToolbar" class="studio-button primary" :disabled="!ready || busy" @click="publish(true)">
             {{ store.activePage?.public_url ? 'Republish' : 'Publish' }}
           </button>
         </template>
+        <details v-if="compactToolbar" class="editor-more">
+          <summary class="studio-button">More</summary>
+          <div class="editor-more-actions" @click="closeActionMenu">
+            <button class="studio-button" :disabled="!canUndo" @click="store.editor.UndoManager.undo()">Undo</button>
+            <button class="studio-button" :disabled="!canRedo" @click="store.editor.UndoManager.redo()">Redo</button>
+            <button class="studio-button" :disabled="!ready" @click="openReview">Responsive review</button>
+            <button v-if="demo" class="studio-button" :disabled="!ready" @click="resetDialog.showModal()">Reset</button>
+            <template v-else>
+              <button v-if="aiEnabled" class="studio-button" :disabled="!ready || busy" @click="showGenerator = true">Generate a page</button>
+              <RouterLink class="studio-button" :to="{ name: 'templates', params: { projectId }, query: { pageId } }">Templates</RouterLink>
+              <button class="studio-button" :disabled="!ready || busy" @click="exportDraft">Download static ZIP</button>
+              <button class="studio-button primary" :disabled="!ready || busy" @click="publish(true)">
+                {{ store.activePage?.public_url ? 'Republish' : 'Publish' }}
+              </button>
+            </template>
+          </div>
+        </details>
       </div>
     </header>
     <div class="editor-status" aria-live="polite">
       <div class="studio-actions">
-        <button class="studio-button" :aria-expanded="!store.isLeftSidebarCollapsed" @click="togglePanel('left')">Layers &amp; blocks</button>
-        <button class="studio-button" :aria-expanded="!store.isRightSidebarCollapsed" @click="togglePanel('right')">Properties</button>
+        <button class="studio-button" aria-controls="editor-library" :disabled="preview" :aria-expanded="!store.isLeftSidebarCollapsed && !preview" @click="togglePanel('left')">Layers &amp; blocks</button>
+        <button class="studio-button" aria-controls="editor-properties" :disabled="preview" :aria-expanded="!store.isRightSidebarCollapsed && !preview" @click="togglePanel('right')">Properties</button>
         <button class="studio-button" :disabled="!ready || preview || (!isolatedName && !store.selectedComponent)"
           @click="isolatedName ? exitIsolation() : isolateSelection()">{{ isolatedName ? 'Exit isolation' : 'Isolate selection' }}</button>
-        <template v-if="!demo">
+        <template v-if="!demo && !compactToolbar">
           <RouterLink :to="{ name: 'templates', params: { projectId }, query: { pageId } }">Templates</RouterLink>
           <button class="studio-button" :disabled="!ready || busy" @click="exportDraft">Download static ZIP</button>
         </template>
@@ -38,9 +55,13 @@
         <button class="studio-button" :disabled="busy" @click="publish(false)">Unpublish</button>
       </div>
     </div>
-    <div class="studio-canvas-layout">
-      <LeftSidebar v-show="!store.isLeftSidebarCollapsed && !preview" :demo="demo" />
-      <main class="studio-canvas" aria-label="Page canvas"><div id="gjs-container"></div></main>
+    <div class="studio-canvas-layout" @keydown.escape="closePanels">
+      <button v-if="overlayPanels && !preview && (!store.isLeftSidebarCollapsed || !store.isRightSidebarCollapsed)"
+        class="editor-panel-scrim" aria-label="Close editor panel" @click="closePanels"></button>
+      <LeftSidebar v-show="!store.isLeftSidebarCollapsed && !preview" :demo="demo" :outlined="outlined"
+        :compact="overlayPanels" @toggle-outlines="toggleOutlines" />
+      <main ref="canvas" class="studio-canvas" aria-label="Page canvas" :data-grid="store.preferences.canvas.showGrid"
+        :style="{ '--editor-grid-size': gridSize + 'px' }"><div id="gjs-container"></div></main>
       <RightSidebar v-show="!store.isRightSidebarCollapsed && !preview" :demo="demo" :ai-enabled="aiEnabled" />
     </div>
     <dialog ref="resetDialog" class="studio-dialog" aria-labelledby="reset-title">
@@ -65,7 +86,7 @@ import grapesjs from 'grapesjs'
 import 'grapesjs/dist/css/grapes.min.css'
 import { apiFetch } from '../api'
 import { demoHtml, demoCss } from '../data/demo'
-import { sanitizeHtml, sanitizeProjectData } from '../pageContent'
+import { canvasStyles, sanitizeHtml, sanitizeProjectData } from '../pageContent'
 import { useWorkspaceStore } from '../stores/workspace'
 import LeftSidebar from '../components/editor/LeftSidebar.vue'
 import RightSidebar from '../components/editor/RightSidebar.vue'
@@ -81,10 +102,26 @@ const showGenerator = ref(false)
 const { projectId, pageId } = route.params
 const demoKey = 'studiopro.demo.v1'
 const ready = ref(false)
+const canUndo = computed(() => {
+  void store.styleTrigger
+  return ready.value && store.editor.UndoManager.hasUndo()
+})
+const canRedo = computed(() => {
+  void store.styleTrigger
+  return ready.value && store.editor.UndoManager.hasRedo()
+})
+const gridSize = computed(() => Math.max(4, Math.min(64, Number(store.preferences.canvas.gridSize) || 24)))
 const busy = ref(false)
 const notice = ref('')
 const device = ref('desktop')
+const deviceWidths = { desktop: 0, tablet: 768, mobile: 320 }
 const preview = ref(false)
+const outlined = ref(false)
+const canvas = ref(null)
+const panelMedia = matchMedia('(max-width: 999px)')
+const toolbarMedia = matchMedia('(max-width: 760px)')
+const overlayPanels = ref(panelMedia.matches)
+const compactToolbar = ref(toolbarMedia.matches)
 const resetDialog = ref(null)
 const review = ref(null)
 const isolatedName = ref('')
@@ -94,20 +131,53 @@ let isolationStyle
 let hiddenElements = []
 let disposed = false
 let autosave
+let resizeCanvas
 
 function setDevice(width) {
-  store.editor.setDevice(width)
   device.value = width
+  store.editor.setDevice(width)
+  fitCanvas()
+}
+
+function fitCanvas() {
+  const editor = store.editor
+  const width = deviceWidths[device.value]
+  if (!editor || !canvas.value) return
+  const zoom = width ? Math.max(1, Math.min(100, Math.floor(100 * canvas.value.clientWidth / width))) : 100
+  if (editor.Canvas.getZoom() !== zoom) editor.Canvas.setZoom(zoom)
+}
+
+function updateLayout() {
+  if (panelMedia.matches && !overlayPanels.value) closePanels()
+  overlayPanels.value = panelMedia.matches
+  compactToolbar.value = toolbarMedia.matches
+}
+
+function closeActionMenu(event) {
+  if (event.target.closest('a, button')) event.currentTarget.closest('details').open = false
+}
+
+function closePanels() {
+  store.setLeftSidebarCollapsed(true)
+  store.setRightSidebarCollapsed(true)
 }
 
 function togglePanel(panel) {
   if (panel === 'left') {
     store.setLeftSidebarCollapsed(!store.isLeftSidebarCollapsed)
-    if (window.innerWidth < 1000) store.setRightSidebarCollapsed(true)
+    if (overlayPanels.value) store.setRightSidebarCollapsed(true)
   } else {
     store.setRightSidebarCollapsed(!store.isRightSidebarCollapsed)
-    if (window.innerWidth < 1000) store.setLeftSidebarCollapsed(true)
+    if (overlayPanels.value) store.setLeftSidebarCollapsed(true)
   }
+}
+
+function toggleOutlines() {
+  if (!store.editor) return
+  const command = 'core:component-outline'
+  outlined.value = !outlined.value
+  if (outlined.value) store.editor.runCommand(command)
+  else store.editor.stopCommand(command)
 }
 
 function previewPage() {
@@ -250,7 +320,8 @@ onBeforeRouteLeave(async () => {
   if (!props.demo && store.isUnsaved) return saveDraft()
 })
 
-watch(() => store.revision, () => {
+watch([() => store.revision, () => store.preferences.editor.autoSave], () => {
+  clearTimeout(autosave)
   if (!ready.value || !store.isUnsaved) return
   notice.value = ''
   if (props.demo) {
@@ -260,7 +331,6 @@ watch(() => store.revision, () => {
       notice.value = 'Browser storage is full. Changes are still visible in the editor.'
     }
   } else if (store.preferences.editor.autoSave) {
-    clearTimeout(autosave)
     const delay = Math.min(60, Math.max(1, Number(store.preferences.editor.autoSaveDelay) || 5))
     autosave = setTimeout(saveDraft, delay * 1000)
   }
@@ -271,8 +341,11 @@ onMounted(async () => {
   store.markDirty(false)
   store.saveState = ''
   store.setActiveLeftTab('layers')
-  store.setLeftSidebarCollapsed(window.innerWidth < 1000)
-  store.setRightSidebarCollapsed(window.innerWidth < 1000)
+  store.setActiveRightTab('style')
+  store.setLeftSidebarCollapsed(overlayPanels.value)
+  store.setRightSidebarCollapsed(overlayPanels.value)
+  panelMedia.addEventListener('change', updateLayout)
+  toolbarMedia.addEventListener('change', updateLayout)
   let page
   if (!props.demo) {
     try {
@@ -296,7 +369,9 @@ onMounted(async () => {
     height: '100%',
     width: '100%',
     storageManager: false,
+    cssIcons: '',
     telemetry: false,
+    undoManager: { maximumStackLength: Math.max(10, Math.min(200, Number(store.preferences.editor.undoDepth) || 50)) },
     assetManager: { upload: false, uploadText: '', autoAdd: false },
     panels: { defaults: [] },
     canvas: {
@@ -304,8 +379,7 @@ onMounted(async () => {
         'https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700;800&display=swap',
         'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap',
         'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap',
-        '/template-utilities.css',
-        '/canvas.css'
+        ...canvasStyles
       ]
     },
     deviceManager: {
@@ -689,6 +763,9 @@ onMounted(async () => {
   editor.UndoManager.clear()
   store.markDirty(false)
   ready.value = true
+  resizeCanvas = new ResizeObserver(fitCanvas)
+  resizeCanvas.observe(canvas.value)
+  if (compactToolbar.value) setDevice('mobile')
   window.addEventListener('beforeunload', warnBeforeUnload)
 })
 
@@ -696,6 +773,9 @@ onBeforeUnmount(() => {
   disposed = true
   ready.value = false
   clearTimeout(autosave)
+  resizeCanvas?.disconnect()
+  panelMedia.removeEventListener('change', updateLayout)
+  toolbarMedia.removeEventListener('change', updateLayout)
   exitIsolation()
   window.removeEventListener('beforeunload', warnBeforeUnload)
   store.editor?.destroy()

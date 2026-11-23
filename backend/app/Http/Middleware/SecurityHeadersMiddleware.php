@@ -22,6 +22,11 @@ class SecurityHeadersMiddleware
             $response->headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:{$imageSource}; frame-src 'self' about: blob:; frame-ancestors 'none'; form-action 'self'; object-src 'none'; base-uri 'none'");
         }
 
+        // Keep CDN analytics and HTML rewriting out of the application's strict script policy.
+        if (str_starts_with($response->headers->get('Content-Type') ?? '', 'text/html')) {
+            $response->headers->addCacheControlDirective('no-transform');
+        }
+
         $response->headers->add([
             'Strict-Transport-Security' => 'max-age=31536000; includeSubDomains',
             'X-Frame-Options' => 'DENY',
