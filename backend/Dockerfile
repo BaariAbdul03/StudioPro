@@ -49,6 +49,7 @@ COPY backend/docker/apache.conf /etc/apache2/sites-available/000-default.conf
 COPY backend/docker/php.ini /usr/local/etc/php/conf.d/studio.ini
 COPY backend/docker/start.sh /usr/local/bin/studio-start
 COPY backend/docker/migrate.sh /usr/local/bin/studio-migrate
+RUN printf 'Listen ${PORT}\n' > /etc/apache2/ports.conf
 
 ENV PORT=80
 ENV DB_SSLROOTCERT=/etc/ssl/certs/ca-certificates.crt
