@@ -39,8 +39,8 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
   }
 
-  const updateProfile = async (name, email) => {
-    user.value = await send('/user/profile', 'PUT', { name, email })
+  const updateProfile = async (name, email, current_password) => {
+    user.value = await send('/user/profile', 'PUT', { name, email, current_password })
     return user.value
   }
 

@@ -31,23 +31,31 @@ class ProjectController extends Controller
             'name' => 'required|string|max:255',
             'slug' => 'required|string|unique:projects,slug',
             'description' => 'nullable|string',
+            'page' => 'sometimes|array:title,html,css',
+            'page.title' => 'required_with:page|string|max:255',
+            'page.html' => 'required_with:page|string|max:262144',
+            'page.css' => 'nullable|string|max:131072',
         ]);
 
+        $starter = $validated['page'] ?? [];
+        unset($validated['page']);
         $validated['user_id'] = $request->user()->id;
 
-        $project = Project::create($validated);
-        
-        // Create default Home Page
-        $project->pages()->create([
-            'title' => 'Home Page',
-            'slug' => 'home',
-            'html' => '<div class="w-full h-full bg-[#0a0b10] text-white flex flex-col justify-center items-center p-12"><h1>Welcome to ' . e($project->name) . '</h1><p class="text-gray-400 mt-2">Start editing this page in the visual builder.</p></div>',
-            'css' => '',
-            'components' => [],
-            'styles' => [],
-        ]);
+        $project = DB::transaction(function () use ($validated, $starter) {
+            $project = Project::create($validated);
+            $project->pages()->create($starter + [
+                'title' => 'Home Page',
+                'slug' => 'home',
+                'html' => '<main class="max-w-3xl mx-auto p-12"><h1>Welcome to '.e($project->name).'</h1><p>Drag a block onto the canvas to start building.</p></main>',
+                'css' => '',
+                'components' => [],
+                'styles' => [],
+            ]);
 
-        return response()->json($project->load('pages'), 201);
+            return $project->load('pages');
+        });
+
+        return response()->json($project, 201);
     }
 
     public function show(Project $project)

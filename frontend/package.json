@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predev": "node build-template-css.mjs",
     "dev": "vite",
+    "prebuild": "node build-template-css.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "test:unit": "vitest run tests/unit/ --environment jsdom",

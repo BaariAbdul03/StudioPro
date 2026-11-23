@@ -32,6 +32,6 @@ export function sanitizeProjectData(value) {
 export function previewDocument(html, css) {
   const safeCss = String(css || '').replace(/</g, '\\3C ')
   return '<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1">' +
-    '<link rel="stylesheet" href="/canvas.css"><style>' + safeCss + '</style></head><body>' +
+    '<link rel="stylesheet" href="/template-utilities.css"><link rel="stylesheet" href="/canvas.css"><style>' + safeCss + '</style></head><body>' +
     sanitizeHtml(html) + '</body></html>'
 }

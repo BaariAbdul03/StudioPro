@@ -1,14 +1,16 @@
 ﻿import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useProjectList } from '../stores/projects'
 
 const portfolio = import.meta.env.MODE === 'portfolio' || import.meta.env.VITE_PUBLIC_DEMO === 'true'
 const protectedRoutes = portfolio ? [] : [
   { path: '/', name: 'dashboard', component: () => import('../views/Dashboard.vue') },
   { path: '/editor/:projectId/:pageId', name: 'editor', component: () => import('../views/Editor.vue') },
-  { path: '/inventory/:projectId', name: 'inventory', component: () => import('../views/InventoryManager.vue') },
-  { path: '/cms/:projectId', name: 'cms', component: () => import('../views/CmsManager.vue') },
-  { path: '/templates/:projectId', name: 'templates', component: () => import('../views/TemplateLibrary.vue') },
-  { path: '/settings/:projectId', name: 'settings', component: () => import('../views/Settings.vue') },
+  { path: '/inventory/:projectId?', name: 'inventory', component: () => import('../views/InventoryManager.vue') },
+  { path: '/cms/:projectId?', name: 'cms', component: () => import('../views/CmsManager.vue') },
+  { path: '/templates/:projectId?', name: 'templates', component: () => import('../views/TemplateLibrary.vue') },
+  { path: '/settings/:projectId?', name: 'settings', component: () => import('../views/Settings.vue') },
+  { path: '/account', name: 'account', component: () => import('../views/Account.vue') },
   { path: '/docs', name: 'docs', component: () => import('../views/Documentation.vue') }
 ].map(route => ({ ...route, meta: { requiresAuth: true } }))
 
@@ -37,9 +39,7 @@ const router = createRouter({
       ? [{ path: '/', name: 'portfolio', component: () => import('../views/Portfolio.vue') }]
       : [
           { path: '/login', name: 'login', component: () => import('../views/Login.vue') },
-          ...(import.meta.env.DEV
-            ? [{ path: '/register', name: 'register', component: () => import('../views/Register.vue') }]
-            : []),
+          { path: '/register', name: 'register', component: () => import('../views/Register.vue') },
           ...protectedRoutes
         ]),
     { path: '/:pathMatch(.*)*', component: () => import('../views/ErrorPage.vue'), props: { status: '404' } }
@@ -49,13 +49,17 @@ const router = createRouter({
 router.beforeEach(async to => {
   if (!to.meta.requiresAuth) return
   const auth = useAuthStore()
-  if (auth.user) return
   try {
-    if (await auth.session()) return
+    if (!auth.user && !await auth.session()) return { name: 'login' }
   } catch {
     return { name: 'error', params: { status: '503' }, query: { from: to.fullPath } }
   }
-  return { name: 'login' }
+  if (to.name === 'settings' && to.query.section === 'account') return { name: 'account' }
+  if (!to.params.projectId && ['cms', 'inventory'].includes(to.name)) {
+    const projects = useProjectList()
+    await projects.load()
+    if (projects.current) return { name: to.name, params: { projectId: projects.current.id }, replace: true }
+  }
 })
 
 router.afterEach(to => {

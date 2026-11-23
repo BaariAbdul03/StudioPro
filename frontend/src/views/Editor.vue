@@ -304,6 +304,7 @@ onMounted(async () => {
         'https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700;800&display=swap',
         'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap',
         'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap',
+        '/template-utilities.css',
         '/canvas.css'
       ]
     },

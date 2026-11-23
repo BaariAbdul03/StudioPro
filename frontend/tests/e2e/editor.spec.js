@@ -61,11 +61,11 @@ test('owner saves, publishes, restores, exports, and unpublishes a draft', async
 })
 
 
-test('mobile registration uses the same light theme and creates a local session', async ({ page }) => {
+test('mobile signup, account settings, and starting a project from a template', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 720 })
   await page.goto('/login')
   const signInColor = await page.locator('main').evaluate(element => getComputedStyle(element).backgroundColor)
-  await page.getByRole('link', { name: 'Create a local account' }).click()
+  await page.getByRole('link', { name: 'Create an account' }).click()
   await expect(page.getByRole('heading', { name: 'Create an account' })).toBeVisible()
   expect(await page.locator('main').evaluate(element => getComputedStyle(element).backgroundColor)).toBe(signInColor)
   await page.getByLabel('Full name').fill('Mobile tester')
@@ -74,6 +74,28 @@ test('mobile registration uses the same light theme and creates a local session'
   await page.getByLabel('Confirm password').fill(process.env.STUDIO_BROWSER_PASSWORD)
   await page.getByRole('button', { name: 'Create account' }).click()
   await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Build your first page' })).toBeVisible()
+  await page.getByRole('link', { name: 'Account', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Account settings' })).toBeVisible()
+  await page.getByLabel('Full name').fill('Mobile editor')
+  await page.getByRole('button', { name: 'Save profile' }).click()
+  await expect(page.getByText('Profile saved.')).toBeVisible()
+  const newPassword = 'new-' + process.env.STUDIO_BROWSER_PASSWORD
+  await page.getByLabel('Current password', { exact: true }).fill(process.env.STUDIO_BROWSER_PASSWORD)
+  await page.getByLabel('New password', { exact: true }).fill(newPassword)
+  await page.getByLabel('Confirm new password').fill(newPassword)
+  await page.getByRole('button', { name: 'Change password' }).click()
+  await expect(page.getByText('Password changed.')).toBeVisible()
+  await page.getByRole('button', { name: 'Sign out' }).click()
+  await expect(page).toHaveURL('/login')
+  await page.getByLabel('Email').fill('mobile@example.test')
+  await page.getByLabel('Password', { exact: true }).fill(newPassword)
+  await page.getByRole('button', { name: 'Sign in' }).click()
+  await page.getByRole('link', { name: 'Choose a template' }).click()
+  await page.getByRole('button', { name: 'Use Nexus Corporate', exact: true }).click()
+  await page.getByRole('button', { name: 'Create project' }).click()
+  await expect(page).toHaveURL(/\/editor\/\d+\/\d+/)
+  await expect(page.frameLocator('.gjs-frame').locator('h1')).toBeVisible()
 })
 
 test('local editor exposes page generation, copy rewrite, and SEO suggestions', async ({ page }) => {
@@ -126,10 +148,24 @@ test('workspace navigation and screens fit a narrow mobile viewport', async ({ p
 
   await expect(page.getByText('20 of 20 templates')).toBeVisible()
   const search = page.getByRole('searchbox', { name: 'Search templates' })
-  const firstTemplate = page.locator('article h3').first()
-  const name = await firstTemplate.textContent()
+  await expect(page.locator('article img')).toHaveCount(20)
+  const covers = await page.locator('article img').evaluateAll(images =>
+    Promise.all(images.map(async image => {
+      image.loading = 'eager'
+      await image.decode()
+      return image.naturalWidth
+    }))
+  )
+  expect(covers.every(width => width > 0)).toBe(true)
+  const name = 'Mono Minimalist'
   await search.fill(name)
   await expect(page.locator('article')).toHaveCount(1)
+  await page.getByRole('button', { name: 'Preview ' + name, exact: true }).click()
+  const preview = page.frameLocator('iframe[title="Template preview"]')
+  await expect(preview.locator('h1')).toBeVisible()
+  const inlineImage = preview.locator('img').first()
+  await expect.poll(() => inlineImage.evaluate(image => image.naturalWidth)).toBeGreaterThan(0)
+  await page.getByRole('button', { name: 'Close', exact: true }).click()
   await page.getByRole('button', { name: 'Use ' + name, exact: true }).click()
   await expect(page.getByRole('dialog')).toContainText('This replaces the selected page')
   await page.getByRole('button', { name: 'Replace draft' }).click()

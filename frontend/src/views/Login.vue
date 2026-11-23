@@ -4,12 +4,12 @@
       <StudioBrand />
       <h1>Sign in to your workspace</h1>
       <form @submit.prevent="submit">
-        <label>Email <input v-model.trim="email" type="email" autocomplete="username" required /></label>
-        <label>Password <input v-model="password" type="password" autocomplete="current-password" required /></label>
+        <label>Email <input v-model.trim="email" name="email" type="email" autocomplete="username" required /></label>
+        <label>Password <input v-model="password" name="password" type="password" autocomplete="current-password" required /></label>
         <p v-if="error" role="alert">{{ error }}</p>
         <button class="studio-button primary" :disabled="busy">{{ busy ? 'Signing in…' : 'Sign in' }}</button>
       </form>
-      <RouterLink v-if="dev" to="/register">Create a local account</RouterLink>
+      <RouterLink class="studio-signin-link" to="/register">Create an account</RouterLink>
       <nav class="studio-auth-links" aria-label="Site information">
         <RouterLink to="/welcome#faq">FAQ</RouterLink>
         <RouterLink to="/about">About us</RouterLink>
@@ -32,7 +32,6 @@ const email = ref('')
 const password = ref('')
 const busy = ref(false)
 const error = ref('')
-const dev = import.meta.env.DEV
 
 async function submit() {
   busy.value = true

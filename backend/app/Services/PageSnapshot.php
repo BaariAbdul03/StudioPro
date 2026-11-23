@@ -161,12 +161,14 @@ class PageSnapshot
     private function canvasCss(): string
     {
         // Packaged as a static app asset in Docker and available from the source tree in local PHP runs.
-        $path = public_path('canvas.css');
-        if (! is_file($path)) {
-            $path = base_path('../frontend/public/canvas.css');
-        }
+        return implode("\n", array_map(static function (string $name): string {
+            $path = public_path($name);
+            if (! is_file($path)) {
+                $path = base_path('../frontend/public/'.$name);
+            }
 
-        return is_file($path) ? file_get_contents($path) : '';
+            return is_file($path) ? file_get_contents($path) : '';
+        }, ['template-utilities.css', 'canvas.css']));
     }
 
     private function cleanInlineStyle(DOMElement $node): string

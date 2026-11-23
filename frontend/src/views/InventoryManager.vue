@@ -1,33 +1,23 @@
 <template>
-  <div class="studio-light studio-management min-h-dvh md:h-dvh w-full flex flex-col bg-surface text-on-surface overflow-x-clip md:overflow-hidden font-geist mesh-bg relative" @click="activeMenuId = null">
+  <div class="studio-light studio-workspace workspace-manager" @click="activeMenuId = null">
     <TopBar />
 
-    <main class="flex-1 overflow-y-auto custom-scrollbar bg-surface relative">
-
-      <div class="max-w-[1280px] mx-auto px-8 pt-8 pb-16 relative z-10 flex flex-col min-h-0 h-full gap-6">
-        <!-- Header Section -->
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <div class="flex items-center gap-2 mb-2">
-              <span class="text-xs font-bold text-[#10B981] uppercase tracking-widest">Commerce</span>
-            </div>
-            <h1 class="text-[28px] font-bold text-white mb-1 tracking-tight">Product Inventory</h1>
-            <p class="text-[13px] text-on-surface-variant max-w-xl">
-              Manage your product catalog, track stock levels, and monitor inventory performance.
-            </p>
-          </div>
-          <div class="flex items-center gap-3">
-            <button @click="exportCSV" class="px-4 py-2.5 border border-outline text-on-surface rounded-xl text-sm font-medium flex items-center gap-2 hover:bg-white/5 transition-colors">
-              <span class="material-symbols-outlined text-[16px]">download</span>
-              Export CSV
-            </button>
-            <button @click="openAddModal" class="text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-primary/25 active:scale-95 transition-all" style="background: linear-gradient(135deg, #2E62FF 0%, #1a4cd4 100%);">
-              <span class="material-symbols-outlined text-[18px]">add</span>
-              Add Product
-            </button>
-          </div>
+    <main class="workspace-main">
+      <header class="workspace-heading">
+        <div><h1>Inventory</h1><p>Manage product listings, prices, and stock for your project.</p></div>
+        <div v-if="projectId" class="studio-actions">
+          <button class="studio-button" :disabled="!filteredProducts.length" @click="exportCSV">Export CSV</button>
+          <button class="studio-button primary" @click="openAddModal">Add Product</button>
         </div>
-
+      </header>
+      <section v-if="!projectId" class="workspace-panel workspace-empty">
+        <h2>Create a project to get started</h2><p>Each project has its own product catalog.</p>
+        <RouterLink class="studio-button primary" to="/?new=1">New project</RouterLink>
+      </section>
+      <section v-else-if="loadError" class="workspace-panel workspace-empty" role="alert">
+        {{ loadError }} <button class="studio-button" @click="loadProducts">Retry</button>
+      </section>
+      <div v-else class="grid gap-4">
         <!-- Summary Stats -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div class="stat-card p-4 rounded-2xl">
@@ -77,14 +67,14 @@
         </div>
 
         <!-- Search & Filters (Glassmorphic) -->
-        <div class="bg-[#1f2937]/40 backdrop-blur-[12px] border border-[#334155]/50 p-3 rounded-2xl flex flex-wrap items-center gap-3">
+        <div class="workspace-panel p-3 flex flex-wrap items-center gap-3">
           <div class="flex-1 basis-full md:basis-auto min-w-0 relative">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-            <input v-model="searchQuery" class="w-full bg-editor-bg border border-outline rounded-xl pl-12 pr-3 py-3 text-[14px] focus:border-primary focus:ring-1 focus:ring-[#2E62FF] transition-all outline-none" placeholder="Search inventory, SKUs, or categories..." type="text"/>
+            <input v-model="searchQuery" class="w-full bg-editor-bg border border-outline rounded-xl pl-12 pr-3 py-3 text-[14px] focus:border-primary focus:ring-1 focus:ring-[#2E62FF] transition-all outline-none" placeholder="Search inventory, SKUs, or categories?" type="search" aria-label="Search inventory"/>
           </div>
           <div class="flex flex-wrap items-center gap-2 min-w-0">
             <div class="relative group">
-              <select v-model="selectedStatus" class="appearance-none bg-[#222a3d] border border-outline px-3 py-3 rounded-xl text-[12px] font-medium flex items-center gap-2 hover:border-[#8d90a2] transition-colors pr-8 outline-none cursor-pointer">
+              <select v-model="selectedStatus" aria-label="Stock status" class="appearance-none bg-[#222a3d] border border-outline px-3 py-3 rounded-xl text-[12px] font-medium flex items-center gap-2 hover:border-[#8d90a2] transition-colors pr-8 outline-none cursor-pointer">
                 <option value="all">Status: All Assets</option>
                 <option value="instock">Status: In Stock</option>
                 <option value="lowstock">Status: Low Stock</option>
@@ -93,14 +83,14 @@
               <span class="absolute right-2 top-1/2 -translate-y-1/2 material-symbols-outlined text-[14px] text-on-surface-variant pointer-events-none">expand_more</span>
             </div>
             <div class="relative group">
-              <select v-model="selectedCategory" class="appearance-none bg-[#222a3d] border border-outline px-3 py-3 rounded-xl text-[12px] font-medium flex items-center gap-2 hover:border-[#8d90a2] transition-colors pr-8 outline-none cursor-pointer">
+              <select v-model="selectedCategory" aria-label="Product category" class="appearance-none bg-[#222a3d] border border-outline px-3 py-3 rounded-xl text-[12px] font-medium flex items-center gap-2 hover:border-[#8d90a2] transition-colors pr-8 outline-none cursor-pointer">
                 <option value="all">Category: All</option>
                 <option v-for="cat in categories" :key="cat" :value="cat">Category: {{ cat }}</option>
               </select>
               <span class="absolute right-2 top-1/2 -translate-y-1/2 material-symbols-outlined text-[14px] text-on-surface-variant pointer-events-none">expand_more</span>
             </div>
             <div class="relative group">
-              <select v-model="currentSort" class="appearance-none bg-[#222a3d] border border-outline px-3 py-3 rounded-xl text-[12px] font-medium flex items-center gap-2 hover:border-[#8d90a2] transition-colors pr-8 outline-none cursor-pointer">
+              <select v-model="currentSort" aria-label="Sort products" class="appearance-none bg-[#222a3d] border border-outline px-3 py-3 rounded-xl text-[12px] font-medium flex items-center gap-2 hover:border-[#8d90a2] transition-colors pr-8 outline-none cursor-pointer">
                 <option value="newest">Recently Added</option>
                 <option value="price-low">Price Low-High</option>
                 <option value="price-high">Price High-Low</option>
@@ -109,14 +99,11 @@
               </select>
               <span class="absolute right-2 top-1/2 -translate-y-1/2 material-symbols-outlined text-[14px] text-on-surface-variant pointer-events-none">sort</span>
             </div>
-            <button @click="exportCSV" class="p-3 border border-outline rounded-xl hover:bg-[#222a3d] transition-colors">
-              <span class="material-symbols-outlined">cloud_download</span>
-            </button>
           </div>
         </div>
 
         <!-- Data Table (Premium Density) -->
-        <div class="bg-surface-container rounded-2xl border border-outline overflow-hidden shadow-2xl flex flex-col flex-1 min-h-[400px]">
+        <div class="workspace-panel overflow-hidden flex flex-col">
           <div class="flex-1 overflow-auto studio-table" role="region" tabindex="0" aria-label="Inventory items">
             <table class="w-full text-left border-collapse">
               <thead class="bg-surface-container-light border-b border-outline">
@@ -143,11 +130,12 @@
                     No product inventory found.
                   </td>
                 </tr>
-                <tr v-else v-for="product in paginatedProducts" :key="product.id" class="hover:bg-[#2d3449]/50 transition-colors group">
+                <tr v-else v-for="product in paginatedProducts" :key="product.id" class="hover:bg-surface transition-colors group">
                   <td class="px-6 py-3">
                     <div class="flex items-center gap-3">
-                      <div class="w-12 h-12 rounded-lg bg-[#2d3449] overflow-hidden border border-outline flex-shrink-0">
-                        <img class="w-full h-full object-cover" :src="getProductImage(product)" />
+                      <div class="w-12 h-12 rounded-lg bg-surface-bright overflow-hidden border border-outline shrink-0 grid place-items-center">
+                        <img v-if="getProductImage(product)" class="w-full h-full object-cover" :src="getProductImage(product)" alt="" />
+                        <span v-else class="material-symbols-outlined text-on-surface-variant" aria-hidden="true">inventory_2</span>
                       </div>
                       <div>
                         <div class="text-[14px] font-bold text-white">{{ product.title }}</div>
@@ -178,7 +166,7 @@
                     <span class="font-semibold">{{ product.inventory_quantity }}</span> <span class="text-[11px] text-on-surface-variant">units</span>
                   </td>
                   <td class="px-6 py-3 text-right relative">
-                    <button @click.stop="activeMenuId = activeMenuId === product.id ? null : product.id" class="p-2 text-on-surface-variant opacity-0 group-hover:opacity-100 hover:text-white transition-all cursor-pointer">
+                    <button @click.stop="activeMenuId = activeMenuId === product.id ? null : product.id" :aria-label="'Actions for ' + product.title" :aria-expanded="activeMenuId === product.id" class="p-2 text-on-surface-variant hover:text-primary cursor-pointer">
                       <span class="material-symbols-outlined text-[20px]">more_horiz</span>
                     </button>
                     
@@ -217,11 +205,10 @@
       </div>
     </main>
 
-    <Footer />
 
     <!-- Add/Edit Product Modal Dialog -->
     <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div class="w-[500px] max-w-[calc(100%-1.5rem)] bg-surface-container border border-white/10 p-6 rounded-2xl shadow-2xl relative flex flex-col gap-4 font-geist">
+      <div class="w-[500px] max-w-[calc(100%-1.5rem)] max-h-[calc(100dvh-2rem)] overflow-y-auto bg-surface-container border border-outline p-6 rounded-2xl shadow-2xl relative flex flex-col gap-4 font-geist">
         <div class="flex justify-between items-center pb-2 border-b border-white/10">
           <h3 class="text-sm font-bold text-white uppercase tracking-wider">{{ isEditing ? 'Edit Product' : 'Add Product' }}</h3>
           <button @click="isModalOpen = false" class="text-on-surface-variant hover:text-white cursor-pointer">
@@ -304,18 +291,6 @@
       </div>
     </div>
 
-    <!-- Help Modal -->
-    <div v-if="showHelp || showFeedback" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div class="w-[420px] max-w-[calc(100%-1.5rem)] bg-surface-container border border-white/10 rounded-2xl shadow-2xl p-5 space-y-3">
-        <h3 class="text-white text-sm font-bold tracking-tight">{{ showHelp ? 'Inventory Help' : 'Send Feedback' }}</h3>
-        <p v-if="showHelp" class="text-xs text-on-surface-variant leading-relaxed">Use explicit stock status for merchandising. Quantity powers operations; status powers storefront messaging.</p>
-        <textarea v-else v-model="feedbackText" class="w-full h-28 bg-editor-bg border border-white/10 rounded-xl text-xs text-white p-3 outline-none focus:border-primary resize-none" placeholder="What should improve?"></textarea>
-        <div class="flex justify-end gap-2 pt-2">
-          <button @click="showHelp = false; showFeedback = false" class="px-4 py-2 border border-white/10 text-on-surface-variant rounded-xl text-xs hover:text-white">Close</button>
-          <button v-if="showFeedback" @click="showFeedback = false; showToast('Feedback saved locally')" class="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:brightness-110 shadow-lg active:scale-95 transition-all">Send</button>
-        </div>
-      </div>
-    </div>
 
     <!-- Toast Notification -->
     <div v-if="toastMessage" class="fixed top-[72px] right-6 z-50 border text-white text-xs font-bold uppercase tracking-wider px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 transition-all duration-300 bg-primary border-primary/50 shadow-primary/20 animate-fade-in">
@@ -331,18 +306,18 @@ import { apiFetch } from '../api'
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import TopBar from '../components/editor/TopBar.vue'
-import Footer from '../components/Footer.vue'
 import { useWorkspaceStore } from '../stores/workspace'
 
 const store = useWorkspaceStore()
 const router = useRouter()
 const route = useRoute()
 
-const projectId = route.params.projectId || 1
+const projectId = route.params.projectId
 
 // Products state
 const products = ref([])
 const loading = ref(true)
+const loadError = ref('')
 
 // Search & Filter state
 const searchQuery = ref('')
@@ -377,9 +352,6 @@ const currentProduct = ref({
 
 const activeMenuId = ref(null)
 const toastMessage = ref('')
-const showHelp = ref(false)
-const showFeedback = ref(false)
-const feedbackText = ref('')
 const confirmState = ref({ open: false, title: '', message: '', action: null })
 const archivedProducts = ref(null)
 
@@ -392,14 +364,15 @@ const showToast = (msg) => {
 
 // Load products from API
 const loadProducts = async () => {
+  if (!projectId) return
+  loadError.value = ''
   loading.value = true
   try {
     const res = await apiFetch(`${store.apiBaseUrl}/projects/${projectId}/products`)
-    if (res.ok) {
-      products.value = await res.json()
-    }
-  } catch (err) {
-    console.error('Failed to load products', err)
+    if (!res.ok) throw new Error()
+    products.value = await res.json()
+  } catch {
+    loadError.value = 'Products could not be loaded.'
   } finally {
     loading.value = false
   }
@@ -503,17 +476,7 @@ const prevPage = () => {
 }
 
 // Slugs & Image helpers
-const getProductImage = (product) => {
-  if (product.slug === 'minimalist-desk-lamp') return '/images/product_cam.png'
-  if (product.slug === 'wireless-mechanical-keyboard') return '/images/vector_flat.png'
-  if (product.slug === 'pro-audio-studio-monitor') return '/images/arch_hero_01.png'
-  if (product.slug === 'ergonomic-task-chair') return '/images/texture_vibe.png'
-  
-  if (product.images && product.images.length && !product.images[0].includes('placeholder')) {
-    return product.images[0]
-  }
-  return '/images/product_cam.png'
-}
+const getProductImage = product => product.images?.[0] || null
 
 const getMockSales = (id) => {
   return ((id * 144) % 1500).toLocaleString()
@@ -676,43 +639,14 @@ const exportCSV = () => {
 </script>
 
 <style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: rgba(255,255,255,0.1);
   border-radius: 10px;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #2E62FF;
-}
 
-.stat-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  transition: all 0.2s ease;
-}
-.stat-card:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(46, 98, 255, 0.25);
-}
+.stat-card { background: #fff; border: 1px solid #d8e0ec; min-width: 0; }
 
-.mesh-bg {
-  background-color: #0b1326;
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(46, 98, 255, 0.1) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
-}
 
-.glass-panel {
-  background: rgba(23, 31, 51, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(141, 144, 162, 0.15);
-}
 
 @keyframes fadeIn {
   from { opacity: 0; }

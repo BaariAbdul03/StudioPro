@@ -5,6 +5,7 @@
       <nav aria-label="Main navigation">
         <a href="#faq">FAQ</a>
         <RouterLink to="/showcase">Sample page</RouterLink>
+        <RouterLink v-if="hasWorkspace" to="/login">Sign in</RouterLink>
         <RouterLink class="portfolio-nav-action" to="/demo">Open editor <span aria-hidden="true">↗</span></RouterLink>
       </nav>
     </header>
@@ -18,7 +19,8 @@
             <RouterLink class="portfolio-primary" to="/demo">Try the editor <span aria-hidden="true">→</span></RouterLink>
             <RouterLink class="portfolio-secondary" to="/showcase">View sample</RouterLink>
           </div>
-          <small>No sign-in. Your edits stay in this tab.</small>
+          <small v-if="hasWorkspace">Ready to save a project? <RouterLink class="studio-signin-link" to="/register">Create an account</RouterLink></small>
+          <small v-else>No sign-in. Your edits stay in this tab.</small>
         </div>
 
         <RouterLink class="portfolio-preview" to="/showcase" aria-label="View the Fieldwork sample page">
@@ -69,6 +71,8 @@
 import SiteFooter from '../components/SiteFooter.vue'
 import StudioBrand from '../components/StudioBrand.vue'
 import { onMounted, onUnmounted } from 'vue'
+
+const hasWorkspace = import.meta.env.MODE !== 'portfolio' && import.meta.env.VITE_PUBLIC_DEMO !== 'true'
 
 const title = 'StudioPro — Visual Page Builder'
 onMounted(() => { document.title = title })

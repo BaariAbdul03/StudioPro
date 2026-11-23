@@ -27,7 +27,7 @@ const documents = {
   about: {
     title: 'About us',
     sections: [
-      { title: 'How StudioPro started', text: 'StudioPro began as a software assignment and grew into a portfolio project. It gives one workspace owner tools to assemble, edit, and publish pages in a visual canvas.' },
+      { title: 'How StudioPro started', text: 'StudioPro began as a software assignment and grew into a portfolio project. It gives each account a workspace to assemble, edit, and publish pages in a visual canvas.' },
       { title: 'Explore the project', text: 'Fieldwork is the sample site. Open it in the demo editor to try the same canvas controls the private workspace uses.' }
     ]
   },
@@ -43,7 +43,7 @@ const documents = {
   terms: {
     title: 'Terms & conditions',
     sections: [
-      { title: 'Using StudioPro', text: 'The public demo is provided for evaluation. The private workspace is for its authorized account holder. Keep your sign-in details private and use the workspace account assigned to you.' },
+      { title: 'Using StudioPro', text: 'The public demo is provided for evaluation. Create an account to use your private workspace and keep your sign-in details secure.' },
       { title: 'Content and publishing', text: 'Upload and publish only content you have permission to use. Review the page and its media before publishing. Anyone with the released URL can view the published page.' },
       { title: 'Availability and exports', text: 'The demo and workspace are provided as available. Keep an exported copy of work you need to retain. Review any generated draft or suggested copy before you use it.' }
     ]

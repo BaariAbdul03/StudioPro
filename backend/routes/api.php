@@ -18,10 +18,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\StitchController;
 
 Route::middleware('web')->group(function () {
-    if (! app()->environment('production')) {
-        Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,60');
-    }
-    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,15');
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:12,60,register:');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:20,15,login:');
 });
 Route::get('/health', function () {
     DB::select('select 1');
@@ -30,12 +28,12 @@ Route::get('/health', function () {
 });
 
 
-Route::middleware(['web', 'auth:web'])->group(function () {
+Route::middleware(['web', 'auth:web', 'auth.session'])->group(function () {
     Route::get('/user', function (Request $request) {
-        return $request->user();
+        return response()->json($request->user());
     });
-    Route::put('/user/profile', [AuthController::class, 'updateProfile']);
-    Route::put('/user/password', [AuthController::class, 'updatePassword']);
+    Route::put('/user/profile', [AuthController::class, 'updateProfile'])->middleware('throttle:8,15,profile:');
+    Route::put('/user/password', [AuthController::class, 'updatePassword'])->middleware('throttle:8,15,password:');
     Route::post('/logout', [AuthController::class, 'logout']);
 
     if (! app()->environment('production')) {

@@ -11,3 +11,4 @@ Supabase-pass.txt
 .neon
 node_modules/
 frontend/.wrangler/
+frontend/public/template-utilities.css

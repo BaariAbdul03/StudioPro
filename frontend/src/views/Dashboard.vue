@@ -1,61 +1,90 @@
 <template>
-  <div class="studio-light">
-    <header class="studio-bar">
-      <StudioBrand />
-      <nav class="studio-actions" aria-label="Workspace">
-        <RouterLink to="/docs">Guide</RouterLink>
-        <RouterLink to="/welcome#faq">FAQ</RouterLink>
-      </nav>
-      <button class="studio-button" @click="signOut">Sign out</button>
-    </header>
-
-    <main class="studio-dashboard">
-      <div class="studio-heading">
-        <div><h1>Projects</h1><p>Pick up where you left off or start a new page.</p></div>
-        <button class="studio-button primary" @click="createDialog.showModal()">New project</button>
-      </div>
-      <p v-if="notice" role="alert">{{ notice }}</p>
-      <p v-if="loading" role="status">Loading projects?</p>
-      <div v-else-if="!projects.length && !notice" class="studio-empty">
-        <h2>Start with a page</h2><p>Create a project to open the editor and build your first draft.</p>
-      </div>
-
-      <section v-if="recent" class="studio-recent" aria-label="Continue editing">
-        <div class="studio-recent-info">
-          <p class="studio-recent-label">Recently edited</p>
-          <h2>{{ recent.name }}</h2>
-          <p>{{ recent.pages[0].title }}</p>
-          <RouterLink class="studio-button primary" :to="editorLink(recent)">Continue editing</RouterLink>
+  <div class="studio-light studio-workspace">
+    <TopBar />
+    <main class="workspace-main">
+      <header class="workspace-heading">
+        <div><h1>Projects</h1><p>Open a draft, start with a template, or build a page from scratch.</p></div>
+        <div class="studio-actions">
+          <RouterLink class="studio-button" :to="templateLink">Browse templates</RouterLink>
+          <button class="studio-button primary" @click="createDialog.showModal()">New project</button>
         </div>
-        <div class="studio-thumbnail">
-          <iframe title="Recent page preview" sandbox="" tabindex="-1" loading="lazy" :srcdoc="preview" />
-        </div>
-      </section>
+      </header>
 
-      <ul v-if="projects.length" class="studio-projects" aria-label="All projects">
-        <li v-for="project in projects" :key="project.id">
-          <div>
-            <h2>{{ project.name }}</h2>
-            <p>{{ project.pages_count || project.pages?.length || 0 }} {{ (project.pages_count || project.pages?.length) === 1 ? 'page' : 'pages' }}</p>
+      <p v-if="projects.error" role="alert">
+        {{ projects.error }} <button class="studio-button" @click="projects.load()">Retry</button>
+      </p>
+      <p v-else-if="projects.loading && !current" role="status">Loading projects…</p>
+
+      <template v-if="current">
+        <section class="workspace-feature workspace-panel" aria-labelledby="active-project-title">
+          <div class="workspace-feature-copy">
+            <p class="workspace-kicker">Active project</p>
+            <h2 id="active-project-title">{{ current.name }}</h2>
+            <p v-if="current.description">{{ current.description }}</p>
+            <dl class="workspace-project-counts">
+              <div><dt>Pages</dt><dd>{{ current.pages_count ?? current.pages?.length ?? 0 }}</dd></div>
+              <div><dt>Collections</dt><dd>{{ current.collections_count ?? 0 }}</dd></div>
+              <div><dt>Products</dt><dd>{{ current.products_count ?? 0 }}</dd></div>
+            </dl>
+            <RouterLink v-if="page" class="studio-button primary" :to="editorLink(current)">Continue editing</RouterLink>
+            <RouterLink v-else class="studio-button" :to="templateLink">Browse templates</RouterLink>
           </div>
-          <nav :aria-label="project.name + ' tools'">
-            <RouterLink v-if="project.pages?.length" :to="editorLink(project)">Edit</RouterLink>
-            <RouterLink :to="'/templates/' + project.id">Templates</RouterLink>
-            <RouterLink :to="'/cms/' + project.id">CMS</RouterLink>
-            <RouterLink :to="'/inventory/' + project.id">Inventory</RouterLink>
-            <RouterLink :to="'/settings/' + project.id">Settings</RouterLink>
-          </nav>
-        </li>
-      </ul>
+          <div v-if="page" class="workspace-preview">
+            <div class="workspace-preview-window">
+              <div class="workspace-preview-bar">
+                <span>{{ page.title }}</span>
+                <span>{{ page.is_published ? 'Published' : 'Draft' }}</span>
+              </div>
+              <div class="workspace-preview-frame">
+                <iframe title="Active project page preview" sandbox="" tabindex="-1" inert :srcdoc="preview" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="workspace-project-list" aria-labelledby="all-projects-title">
+          <div class="workspace-section-heading">
+            <h2 id="all-projects-title">All projects</h2>
+            <RouterLink to="/docs">Workspace guide</RouterLink>
+          </div>
+          <ul class="workspace-panel">
+            <li v-for="project in projects.projects" :key="project.id">
+              <div>
+                <strong>{{ project.name }}</strong>
+                <span>{{ project.pages_count ?? project.pages?.length ?? 0 }} {{ (project.pages_count ?? project.pages?.length) === 1 ? 'page' : 'pages' }}</span>
+              </div>
+              <RouterLink v-if="project.pages?.length" class="studio-button" :aria-label="'Open editor for ' + project.name" :to="editorLink(project)">Open editor</RouterLink>
+              <button v-else class="studio-button" @click="projects.select(project.id)">Select project</button>
+            </li>
+          </ul>
+        </section>
+      </template>
+
+      <section v-else-if="!projects.loading && !projects.error" class="workspace-feature workspace-panel">
+        <div class="workspace-feature-copy">
+          <h2>Build your first page</h2>
+          <p>Start with a blank canvas or use an editable layout from the template library.</p>
+          <div class="studio-actions">
+            <RouterLink class="studio-button primary" to="/templates">Choose a template</RouterLink>
+            <RouterLink class="studio-button" to="/demo">Try the editor</RouterLink>
+          </div>
+        </div>
+        <RouterLink class="workspace-preview workspace-sample" to="/showcase" aria-label="View the Fieldwork sample page">
+          <span class="workspace-preview-window">
+            <span class="workspace-preview-bar">Example project · Fieldwork</span>
+            <img src="/images/arch_hero_01.png" alt="" width="1024" height="1024">
+          </span>
+        </RouterLink>
+      </section>
     </main>
 
     <dialog ref="createDialog" class="studio-dialog" aria-labelledby="new-project-title">
       <form @submit.prevent="createProject">
         <h2 id="new-project-title">New project</h2>
-        <label>Project name<input v-model.trim="name" required maxlength="255" autofocus /></label>
+        <label>Project name<input v-model.trim="name" name="name" required maxlength="255" autofocus /></label>
         <p v-if="createError" role="alert">{{ createError }}</p>
         <div class="studio-actions">
-          <button type="button" class="studio-button" @click="createDialog.close()">Cancel</button>
+          <button type="button" class="studio-button" :disabled="creating" @click="createDialog.close()">Cancel</button>
           <button class="studio-button primary" :disabled="creating">Create project</button>
         </div>
       </form>
@@ -64,35 +93,30 @@
 </template>
 
 <script setup>
-import StudioBrand from '../components/StudioBrand.vue'
+import TopBar from '../components/editor/TopBar.vue'
 import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { apiFetch } from '../api'
+import { useRoute, useRouter } from 'vue-router'
 import { previewDocument } from '../pageContent'
-import { useAuthStore } from '../stores/auth'
+import { useProjectList } from '../stores/projects'
 
-const projects = ref([])
-const loading = ref(true)
-const notice = ref('')
+const projects = useProjectList()
+const route = useRoute()
+const router = useRouter()
 const name = ref('')
 const creating = ref(false)
 const createError = ref('')
 const createDialog = ref(null)
-const router = useRouter()
-const auth = useAuthStore()
-const recent = computed(() => projects.value.find(project => project.pages?.length))
-const preview = computed(() => previewDocument(recent.value?.pages[0]?.html, recent.value?.pages[0]?.css))
+const current = computed(() => projects.current)
+const page = computed(() => current.value?.pages?.[0])
+const preview = computed(() => previewDocument(page.value?.html, page.value?.css))
+const templateLink = computed(() => current.value ? '/templates/' + current.value.id : '/templates')
 const editorLink = project => ({ name: 'editor', params: { projectId: project.id, pageId: project.pages[0].id } })
 
-onMounted(async () => {
-  try {
-    const response = await apiFetch('/api/projects')
-    if (!response.ok) throw new Error()
-    projects.value = await response.json()
-  } catch {
-    notice.value = 'Projects could not be loaded. Refresh to try again.'
-  } finally {
-    loading.value = false
+onMounted(() => {
+  projects.load()
+  if (route.query.new === '1') {
+    createDialog.value.showModal()
+    router.replace({ name: 'dashboard' })
   }
 })
 
@@ -100,29 +124,13 @@ async function createProject() {
   creating.value = true
   createError.value = ''
   try {
-    const slug = name.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 230) || 'project'
-    const response = await apiFetch('/api/projects', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.value, slug: slug + '-' + crypto.randomUUID().slice(0, 8) })
-    })
-    if (!response.ok) throw new Error()
-    const project = await response.json()
+    const project = await projects.create(name.value)
     createDialog.value.close()
     await router.push(editorLink(project))
-  } catch {
-    createError.value = 'Project could not be created. Try again.'
+  } catch (error) {
+    createError.value = error.message
   } finally {
     creating.value = false
-  }
-}
-
-async function signOut() {
-  try {
-    await auth.logout()
-    await router.push('/login')
-  } catch {
-    notice.value = 'Sign-out failed. Try again.'
   }
 }
 </script>

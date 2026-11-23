@@ -33,10 +33,7 @@ $workspace = function (int $status = 200) {
     abort(404);
 };
 
-$routes = 'login|demo|showcase|welcome|about|privacy|terms|docs|error/(?:403|404|500|503)|editor/\d+/\d+|(?:inventory|cms|templates|settings)/\d+';
-if (! app()->environment('production')) {
-    $routes .= '|register';
-}
+$routes = 'login|register|account|demo|showcase|welcome|about|privacy|terms|docs|error/(?:403|404|500|503)|editor/\d+/\d+|(?:inventory|cms|templates|settings)(?:/\d+)?';
 Route::get('/{workspacePath}', fn () => $workspace())->where('workspacePath', $routes);
 Route::fallback(function () use ($workspace) {
     abort_if(request()->is('api/*'), 404);

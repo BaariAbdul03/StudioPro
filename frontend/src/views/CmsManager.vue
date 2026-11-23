@@ -1,34 +1,28 @@
 <template>
-  <div class="studio-light studio-management min-h-dvh md:h-dvh w-full flex flex-col bg-surface text-on-surface overflow-x-clip md:overflow-hidden font-geist mesh-bg relative">
+  <div class="studio-light studio-workspace workspace-manager">
     <TopBar />
 
-    <main class="flex-1 flex flex-col px-4 py-5 md:px-8 md:py-6 md:overflow-hidden min-h-0">
-      <div class="max-w-[1600px] mx-auto w-full flex flex-col flex-1 min-h-0 space-y-0">
-        
-        <!-- Header with Breadcrumbs & Actions -->
-        <div class="flex flex-wrap items-end justify-between gap-3 mb-6 relative shrink-0">
-          <!-- Hidden Select is removed -->
-          
-          <div class="relative z-10 pointer-events-none">
-            <div class="flex items-center gap-2 mb-1.5">
-              <span class="font-mono text-[11px] text-on-surface-variant uppercase tracking-widest">CMS Manager</span>
-              <span class="text-on-surface-variant text-[12px]">/</span>
-              <span class="font-mono text-[11px] text-primary uppercase tracking-widest">{{ activeCollection ? activeCollection.name : 'Select Collection' }}</span>
-            </div>
-            
-            <h1 class="text-[32px] font-semibold text-on-surface tracking-tight flex items-center gap-4">
-              {{ activeCollection ? activeCollection.name : 'Collections' }}
-              <span v-if="activeCollection" class="text-[13px] font-normal text-on-surface-variant px-3 py-1 border border-outline/50 rounded-full">
-                {{ items.length }} Items Total
-              </span>
-            </h1>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-2 sm:gap-4 relative z-30">
+    <main class="workspace-main">
+      <header class="workspace-heading">
+        <div><h1>CMS</h1><p>Organize reusable content in collections and edit each entry.</p></div>
+        <button v-if="projectId" class="studio-button primary" @click="openNewCollectionModal">New Collection</button>
+      </header>
+      <section v-if="!projectId" class="workspace-panel workspace-empty">
+        <h2>Create a project to get started</h2><p>Each project has its own content collections.</p>
+        <RouterLink class="studio-button primary" to="/?new=1">New project</RouterLink>
+      </section>
+      <template v-else>
+        <div v-if="loadError" class="workspace-panel workspace-empty" role="alert">
+          {{ loadError }} <button class="studio-button" @click="loadCollections">Retry</button>
+        </div>
+        <template v-else>
+        <div v-if="activeCollection" class="cms-collection-heading">
+          <h2>{{ activeCollection.name }} <span>{{ items.length }} items</span></h2>
+          <div class="studio-actions">
             <template v-if="activeCollection">
               <button 
                 @click.stop="openAddFieldModal"
-                class="px-6 py-3 border border-outline/30 text-on-surface text-[13px] font-medium rounded-xl bg-[#171f33]/40 hover:bg-[#222a3d]/50 transition-colors flex items-center gap-2 backdrop-blur-[12px]"
+                class="studio-button"
               >
                 <span class="material-symbols-outlined text-[18px]">view_column_2</span>
                 Add Field
@@ -36,8 +30,7 @@
               
               <button 
                 @click.stop="openNewItemModal"
-                class="px-6 py-3 text-white text-[13px] font-medium rounded-xl hover:opacity-90 transition-all active:scale-95 flex items-center gap-2"
-                style="background: linear-gradient(135deg, #2E62FF 0%, #1e40af 100%); box-shadow: 0 4px 15px rgba(46, 98, 255, 0.25);"
+                class="studio-button primary"
               >
                 <span class="material-symbols-outlined text-[18px]">add_circle</span>
                 New Item
@@ -47,36 +40,28 @@
         </div>
 
         <!-- 2 Column Layout -->
-        <div class="flex flex-col md:flex-row gap-4 md:gap-6 flex-1 min-h-0 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-[15rem_minmax(0,1fr)] gap-4">
           <!-- Left Sidebar -->
-          <div class="w-full md:w-72 flex flex-col gap-4 shrink-0">
-            <button 
-              @click.stop="openNewCollectionModal" 
-              class="w-full px-6 py-3 border border-outline/30 text-on-surface text-[13px] font-medium rounded-xl bg-[#171f33]/40 hover:bg-[#222a3d]/50 transition-colors flex items-center justify-center gap-2"
-            >
-              <span class="material-symbols-outlined text-[18px]">add</span>
-              New Collection
-            </button>
+          <div class="min-w-0">
             
-            <div class="flex-1 bg-surface-container/70 backdrop-blur-[12px] border border-outline/30 rounded-3xl p-4 flex flex-col overflow-hidden">
+            <div class="workspace-panel p-4 flex flex-col">
               <div class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 px-2 mt-2">Collections</div>
-              <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-1">
+              <div class="flex-1 overflow-y-auto pr-2 space-y-1">
                 <div 
                   v-for="col in collections" 
-                  :key="col.id" 
-                  @click="activeCollection = col; onCollectionChange()"
+                  :key="col.id"
                   class="flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer transition-all border group"
-                  :class="activeCollection && activeCollection.id === col.id ? 'bg-primary/10 border-primary/50 text-primary' : 'bg-transparent border-transparent text-on-surface-variant hover:bg-white/5 hover:text-on-surface'"
+                  :class="activeCollection && activeCollection.id === col.id ? 'bg-primary/10 border-primary/50 text-primary' : 'bg-transparent border-transparent text-on-surface-variant hover:bg-surface hover:text-on-surface'"
                 >
-                  <span class="font-medium text-sm truncate max-w-[120px]">{{ col.name }}</span>
+                  <button class="font-medium text-sm truncate text-left" :aria-pressed="activeCollection?.id === col.id" @click="selectCollection(col)">{{ col.name }}</button>
                   <div class="flex items-center gap-1.5">
                     <span v-if="activeCollection && activeCollection.id === col.id" class="text-[10px] font-bold bg-primary/20 px-2 rounded-full mr-1">{{ items.length }}</span>
                     <!-- Edit Collection -->
-                    <button @click.stop="openEditCollectionModal(col)" class="opacity-0 group-hover:opacity-100 text-on-surface-variant hover:text-primary transition-colors p-1 flex items-center justify-center">
+                    <button @click.stop="openEditCollectionModal(col)" class="text-on-surface-variant hover:text-primary transition-colors p-1 flex items-center justify-center">
                       <span class="material-symbols-outlined text-[15px]">edit</span>
                     </button>
                     <!-- Delete Collection -->
-                    <button @click.stop="deleteCollection(col)" class="opacity-0 group-hover:opacity-100 text-on-surface-variant hover:text-[#EF4444] transition-colors p-1 flex items-center justify-center">
+                    <button @click.stop="deleteCollection(col)" class="text-on-surface-variant hover:text-[#EF4444] transition-colors p-1 flex items-center justify-center">
                       <span class="material-symbols-outlined text-[15px]">delete</span>
                     </button>
                   </div>
@@ -86,16 +71,17 @@
           </div>
 
         <!-- Data Table Container -->
-        <div class="rounded-3xl overflow-hidden bg-surface-container/70 backdrop-blur-[12px] border border-outline/30 flex flex-col flex-1 min-h-0">
+        <section class="workspace-panel overflow-hidden flex flex-col flex-1" aria-label="Content items">
           <div class="flex-1 overflow-auto studio-table" role="region" tabindex="0" aria-label="Collection items">
             <div v-if="loadingItems" class="p-20 flex flex-col items-center justify-center gap-4 text-on-surface-variant">
               <span class="material-symbols-outlined text-4xl animate-spin">refresh</span>
               <span class="text-sm font-bold">Loading collection items...</span>
             </div>
             
+            <div v-else-if="itemsError" class="workspace-empty" role="alert">{{ itemsError }}</div>
             <div v-else-if="!activeCollection" class="p-6 sm:p-12 flex flex-col items-center justify-center gap-4 text-on-surface-variant min-h-[350px]">
               <span class="material-symbols-outlined text-5xl opacity-30 text-primary">database</span>
-              <span class="text-sm font-bold text-on-surface-variant">Select a collection above to manage database.</span>
+              <span class="text-sm font-bold text-on-surface-variant">Create a collection to start adding content.</span>
             </div>
 
             <div v-else-if="items.length === 0" class="p-6 sm:p-12 flex flex-col items-center justify-center gap-4 text-on-surface-variant min-h-[350px]">
@@ -132,7 +118,7 @@
                   <td class="p-6">
                     <div class="flex items-center gap-4">
                       <div v-if="item.data.image || item.data.thumbnail" class="w-12 h-12 rounded-xl bg-[#171f33] overflow-hidden shrink-0 border border-outline/20">
-                        <img :src="item.data.image || item.data.thumbnail" class="w-full h-full object-cover">
+                        <img :src="item.data.image || item.data.thumbnail" alt="" class="w-full h-full object-cover">
                       </div>
                       <div v-else class="w-12 h-12 rounded-xl bg-[#171f33] flex items-center justify-center shrink-0 border border-outline/20">
                         <span class="material-symbols-outlined text-[20px] text-[#434656]">article</span>
@@ -166,7 +152,7 @@
                   </td>
 
                   <td class="p-6">
-                    <div class="flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity gap-2">
+                    <div class="flex items-center justify-end transition-opacity gap-2">
                       <button @click="openEditItemModal(item)" class="p-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">edit</span></button>
                       <button @click="deleteItem(item)" class="p-2 text-on-surface-variant hover:text-[#EF4444] transition-colors"><span class="material-symbols-outlined text-[20px]">delete</span></button>
                     </div>
@@ -175,12 +161,12 @@
               </tbody>
             </table>
           </div>
-          </div>
+        </section>
         </div>
-      </div>
+        </template>
+      </template>
     </main>
 
-    <Footer />
     <!-- MODALS & DRAWERS -->
     
     <!-- 1. Create Collection Modal -->
@@ -378,21 +364,7 @@
         </div>
       </div>
     </div>
-
-    <!-- Help Modal (Documentation) -->
-    <div v-if="showHelp || showFeedback" class="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div class="w-[420px] max-w-[calc(100%-1.5rem)] bg-surface-container border border-white/10 rounded-2xl shadow-2xl p-5 space-y-3">
-        <h3 class="text-white text-sm font-bold tracking-tight">{{ showHelp ? 'CMS Help' : 'Send Feedback' }}</h3>
-        <p v-if="showHelp" class="text-xs text-on-surface-variant leading-relaxed">
-          Create collections, configure fields (schema), and manage items. Asset fields hold image URLs or uploaded assets. Bound items connect directly to the editor's Dynamic List blocks.
-        </p>
-        <textarea v-else v-model="feedbackText" class="w-full h-28 bg-editor-bg border border-white/10 rounded-xl text-xs text-white p-3 outline-none focus:border-primary resize-none" placeholder="What should improve?"></textarea>
-        <div class="flex justify-end gap-2 pt-2">
-          <button @click="showHelp = false; showFeedback = false" class="px-4 py-2 border border-white/10 text-on-surface-variant rounded-xl text-xs font-semibold hover:text-white transition-colors">Close</button>
-          <button v-if="showFeedback" @click="showFeedback = false; showToast('Feedback saved locally')" class="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:brightness-110 shadow-lg shadow-primary/20 active:scale-95 transition-all">Send</button>
-        </div>
-      </div>
-    </div>
+    <p v-if="toastMessage" class="workspace-toast" role="status">{{ toastMessage }}</p>
   </div>
 </template>
 
@@ -402,21 +374,19 @@ import { apiFetch } from '../api'
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import TopBar from '../components/editor/TopBar.vue'
-import Footer from '../components/Footer.vue'
 import { useWorkspaceStore } from '../stores/workspace'
 
 const route = useRoute()
 const store = useWorkspaceStore()
-const projectId = route.params.projectId || 1
+const projectId = route.params.projectId
 
 const collections = ref([])
 const activeCollection = ref(null)
 const items = ref([])
 const loadingItems = ref(false)
+const loadError = ref('')
+const itemsError = ref('')
 const toastMessage = ref('')
-const showHelp = ref(false)
-const showFeedback = ref(false)
-const feedbackText = ref('')
 const confirmState = ref({ open: false, title: '', message: '', action: null })
 
 // Modal/Drawer states
@@ -448,42 +418,36 @@ const dynamicFields = computed(() => {
   return activeCollection.value.fields.filter(f => f.key !== 'name')
 })
 
-const onCollectionChange = () => {
-  if (activeCollection.value) {
-    selectCollection(activeCollection.value)
-  } else {
-    items.value = []
-  }
-}
-
 // Fetch all collections
 const loadCollections = async () => {
+  if (!projectId) return
+  loadError.value = ''
   try {
     const res = await apiFetch(`${store.apiBaseUrl}/projects/${projectId}/collections`)
-    if (res.ok) {
-      collections.value = await res.json()
-      if (collections.value.length && !activeCollection.value) {
-        selectCollection(collections.value[0])
-      }
+    if (!res.ok) throw new Error()
+    collections.value = await res.json()
+    if (collections.value.length && !activeCollection.value) {
+      selectCollection(collections.value[0])
     }
-  } catch (err) {
-    console.error('Failed to load collections', err)
+  } catch {
+    loadError.value = 'Collections could not be loaded.'
   }
 }
 
 const selectCollection = async (collection) => {
   activeCollection.value = collection
   loadingItems.value = true
+  itemsError.value = ''
   items.value = []
   try {
     const res = await apiFetch(`${store.apiBaseUrl}/collections/${collection.id}/items`)
-    if (res.ok) {
-      items.value = await res.json()
-    }
-  } catch (err) {
-    console.error('Failed to load items', err)
+    if (!res.ok) throw new Error()
+    const result = await res.json()
+    if (activeCollection.value?.id === collection.id) items.value = result
+  } catch {
+    if (activeCollection.value?.id === collection.id) itemsError.value = 'Content items could not be loaded.'
   } finally {
-    loadingItems.value = false
+    if (activeCollection.value?.id === collection.id) loadingItems.value = false
   }
 }
 
@@ -779,18 +743,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
+.cms-collection-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .7rem; margin-bottom: 1rem; }
+.cms-collection-heading h2 { font-size: 1.15rem; font-weight: 700; overflow-wrap: anywhere; }
+.cms-collection-heading h2 span { color: #53627e; font-size: .82rem; font-weight: 500; margin-inline-start: .4rem; }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: rgba(255,255,255,0.1);
   border-radius: 10px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #2E62FF;
 }
 
 @keyframes slideIn {
@@ -809,19 +768,7 @@ onMounted(() => {
   animation: fadeIn 0.2s ease-out forwards;
 }
 
-.mesh-bg {
-  background-color: #0b1326;
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(46, 98, 255, 0.1) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
-}
 
-.glass-panel {
-  background: rgba(23, 31, 51, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(141, 144, 162, 0.15);
-}
 
 .animate-pulse-subtle {
   animation: pulse-subtle 2s infinite;
