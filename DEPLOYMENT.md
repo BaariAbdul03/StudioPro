@@ -11,7 +11,7 @@ Check `/up` and `/api/health` on the live URL, then verify workspace login, uplo
 ## Runtime configuration
 
 1. Connect the GitHub repository in Hostless and select the intended deploy branch. Use the repository root as the build context and `backend/Dockerfile` for the build.
-2. Add public HTTP port `80` and use the generated HTTPS hostname. In runtime variables, set `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL` to that HTTPS origin, `DB_CONNECTION=pgsql`, `SESSION_DRIVER=database`, `SESSION_SECURE_COOKIE=true`, and `CACHE_STORE=database`. Supply a stable `APP_KEY`. Leave `STUDIO_PUBLIC_URL` unset to serve share links on the same origin.
+2. Match the service port to the container environment variable `PORT` and use the generated HTTPS hostname. In runtime variables, set `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL` to that HTTPS origin, `DB_CONNECTION=pgsql`, `SESSION_DRIVER=database`, `SESSION_SECURE_COOKIE=true`, and `CACHE_STORE=database`. Supply a stable `APP_KEY`. Leave `STUDIO_PUBLIC_URL` unset to serve share links on the same origin.
 3. Set the pooled Neon URL as `DATABASE_URL`. Set `NEON_STORAGE_ENDPOINT`, `NEON_STORAGE_ACCESS_KEY_ID`, `NEON_STORAGE_SECRET_ACCESS_KEY`, and `NEON_STORAGE_REGION` in runtime secrets. The image defaults to the `studio-media` and `studio-published` Neon buckets.
 4. Configure `GET /up` as the recurring health check so an idle Neon compute can suspend. Run `sh /usr/local/bin/studio-migrate` as a one-off job with `DATABASE_URL_UNPOOLED` if the branch needs migrations. Run `php artisan studio:provision owner@example.test` in the service shell and enter the owner password interactively.
 5. Open `/welcome` for the portfolio, `/demo` for the browser demo, and `/login` for the private workspace. Verify `/api/health` once. Sign in, apply a template, download a ZIP, upload an image, publish, and verify the share link while signed out. Unpublish and verify that it returns HTTP 404.
@@ -22,7 +22,7 @@ One service covers the editor, templates, CMS, inventory, version history, uploa
 
 Set `STUDIO_AI_ENABLED=true` and `GEMINI_API_KEY` on the workspace service for page generation, copy rewrite, and SEO suggestions.
 
-For Stitch, set `STUDIO_STITCH_ENABLED=true`, `STITCH_PROJECT_ID=1798865299197471638`, and `STITCH_API_KEY` with a rotated key in runtime secrets. Laravel starts a [background process](https://laravel.com/docs/13.x/queues#deferred-dispatching) for each generation request. This lets the Neon compute suspend between uses.
+For Stitch, set `STUDIO_STITCH_ENABLED=true`, `STITCH_PROJECT_ID`, and `STITCH_API_KEY` with a rotated key in runtime secrets. Laravel starts a [background process](https://laravel.com/docs/13.x/queues#deferred-dispatching) for each generation request. This lets the Neon compute suspend between uses.
 
 Stitch creates screens in the configured project. The editor imports HTML and inline styles when Google makes the download available and links back to the Stitch project in either case. Import strips scripts and external stylesheets, so designs that depend on those may need styling adjustments.
 
