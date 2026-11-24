@@ -1,33 +1,52 @@
-﻿# StudioPro
+# StudioPro
 
-A visual page builder for a single-client workspace. Start from one of 20 templates, edit in GrapesJS, isolate a component, compare three viewport widths, and publish a public URL or download a static ZIP. The portfolio includes a finished sample visitors can edit in their browser.
+StudioPro is a visual website builder. Start from a template, edit pages on a responsive canvas, then publish a shareable URL or download a static ZIP.
 
-## Local setup
+**[Open StudioPro](https://studiopro.hostless.app/)** · [Try the editor without an account](https://studiopro.hostless.app/demo) · [View the Fieldwork sample](https://studiopro.hostless.app/showcase)
 
-Requirements are PHP 8.4.28 or newer in the 8.4/8.5 series, Composer 2, and Node 24. Enable PHP's PDO SQLite, fileinfo, GD, and ZIP extensions for local development and tests. Use PDO PostgreSQL for Neon.
+## Screenshots
 
-1. From `backend`, run `composer install`. Copy `.env.example` to `.env` if it is missing, then run `php artisan key:generate` for the new file. With an existing Supabase environment file, set `DB_CONNECTION=sqlite`, clear `DB_URL`, and use the local filesystem settings in the example.
-2. For SQLite, run `php artisan migrate`. For Neon, use the setup below. Run `php artisan studio:provision owner@example.test` to create an owner and sample using a private password. Start Laravel with `php artisan serve --no-reload` so that uploads can use the system temporary directory on Windows.
-3. From `frontend`, run `npm ci --ignore-scripts` and `npm run dev`. Open `http://127.0.0.1:5173` to sign in. Open `/demo` to edit the sample within your browser tab.
+**Visual editor** — Fieldwork on the canvas with the layers panel and element properties open.
 
-The Vite development server proxies private API requests to Laravel at `127.0.0.1:8000`. Use `npm run build:portfolio` for Cloudflare Pages. See [Deploy StudioPro](DEPLOYMENT.md) for full-stack hosting and Neon configuration.
+![StudioPro visual editor in dark mode with the Fieldwork architecture site on the canvas](docs/screenshots/editor.png)
 
-The public landing page and FAQ are available at `/welcome` in local development. The site information pages live at `/about`, `/privacy`, and `/terms`.
+**Template library** — 20 editable designs with live previews and category filters.
 
-## Neon Postgres
+![StudioPro template library showing four columns of page previews](docs/screenshots/templates.png)
 
-Run `neon deploy` from the repository root, then `neon env pull --file backend/.env --service postgres` so Laravel can load the generated variables. Use `DB_CONNECTION=pgsql`. Laravel uses `DATABASE_URL` for pooled traffic and `DATABASE_URL_UNPOOLED` for migrations. Existing `DB_URL` and `DB_DIRECT_URL` overrides take priority. Neon connections use `verify-full` and need a trusted CA bundle through `DB_SSLROOTCERT` or PHP’s CA configuration.
+**Workspace settings** — Project details and Light, Dark, and System appearance options.
 
-From `backend`, run `php artisan migrate --database=pgsql_direct --force` to apply the workspace schema. Run `npm run build` at the repository root to build the frontend. For local HTTP development, use `APP_ENV=local`, `APP_URL=http://127.0.0.1:8000`, and `SESSION_SECURE_COOKIE=false` in the Laravel process environment.
+![StudioPro settings in dark mode with project details and appearance options](docs/screenshots/settings.png)
 
-## Local AI tools
+## What you can do
 
-Sign in and open a project to generate a draft, rewrite selected copy, or suggest SEO metadata. Set `GEMINI_API_KEY` in the backend environment to use Gemini. The built-in templates and text rules work without provider credentials. The editor shows which produced a result.
+- Design with reusable blocks and linked symbols. Isolate a component or compare desktop, tablet, and mobile previews.
+- Manage pages, CMS collections, product inventory, and image uploads from your workspace.
+- Save drafts, restore checkpoints, publish or unpublish pages, and export static HTML, CSS, and assets as a ZIP.
+- Generate a draft, rewrite copy, or suggest SEO metadata with Gemini when configured. Built-in suggestions also work without a provider key.
 
-To enable Stitch locally, run `npm ci --ignore-scripts --prefix backend` from the root. Set `STUDIO_STITCH_ENABLED=true`, `STITCH_PROJECT_ID`, `STITCH_API_KEY`, and `CACHE_STORE=database` in the backend environment. On Windows, also set `DB_QUEUE_RETRY_AFTER=180` and run `php artisan queue:work database --queue=stitch --timeout=158 --tries=1` from `backend` alongside the app. On Linux, Laravel starts a background process for each request.
+The frontend uses Vue 3, Vite, Tailwind CSS, and GrapesJS. Laravel and Sanctum serve the API. Production runs on Hostless with Neon Postgres and object storage.
 
-## Checks
+## Run locally
 
-- Backend from `backend` with `php artisan test`.
-- Frontend from `frontend` with `npm run test:unit` and `npm run build`.
-- Browser tests from `frontend` after `npx playwright install chromium`. Run `npm run test:e2e` for the private workflow and `npm run test:e2e:public` for the portfolio. The private suite starts a PHP server on port 8180 and uses a SQLite fixture. Set `PHP_BINARY` if PHP is outside your PATH.
+Install Node.js 24, Composer 2, and PHP 8.4.28 or later in the 8.4 or 8.5 series. Enable PDO SQLite, fileinfo, GD, and ZIP. Enable PDO PostgreSQL if you use Neon.
+
+1. In `backend`, run `composer install`. If `.env` is missing, copy `.env.example` to `.env` and run `php artisan key:generate`.
+2. In `backend`, run `php artisan migrate` and `php artisan serve --no-reload`. To seed the Fieldwork sample, run `php artisan studio:provision owner@example.test` and enter a password when prompted.
+3. In another terminal, run `npm ci --ignore-scripts --prefix frontend` and `npm run dev --prefix frontend`. Open [the local app](http://127.0.0.1:5173) to create an account or sign in.
+
+Vite proxies API requests to Laravel at `127.0.0.1:8000`. The default environment uses SQLite and local files. Put optional AI credentials in the Laravel environment.
+
+## Build and test
+
+```sh
+npm run build
+npm run test:unit --prefix frontend
+npm exec --prefix frontend -- playwright install chromium
+npm run test:e2e --prefix frontend
+npm run test:e2e:public --prefix frontend
+```
+
+Run `php artisan test` from `backend` for the Laravel suite. The private browser suite starts its own PHP server and SQLite fixture. Set `PHP_BINARY` if PHP is outside your PATH.
+
+See [deployment and Neon setup](DEPLOYMENT.md) for the full workspace and the optional Cloudflare portfolio build.
